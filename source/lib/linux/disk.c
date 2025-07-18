@@ -21,11 +21,9 @@
 #include <IOKit/IOKitLib.h>
 #include <CoreFoundation/CoreFoundation.h>
 
-void disk_size();
-
 
 typedef struct {
-    long total_disk_size; 
+    long size; 
 } disk;
 
 

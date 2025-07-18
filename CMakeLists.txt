@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
 
 # Set the project name

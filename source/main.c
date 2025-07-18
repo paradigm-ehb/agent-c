@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include <pthread.h>
 #include "headers/cpu.h"
 #include "headers/ram.h"
@@ -78,3 +79,4 @@ int main(int argc, char** argv) {
 }
 
 #endif
+
