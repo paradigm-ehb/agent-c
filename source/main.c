@@ -1,7 +1,7 @@
 #include <pthread.h>
 #include <curl/curl.h>
 #include <cjson/cJSON.h>
-#include <lib.h>
+#include "lib.h"
 #include <stdlib.h>
 #include <stdio.h>
 

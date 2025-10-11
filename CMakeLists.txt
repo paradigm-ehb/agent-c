@@ -8,5 +8,4 @@ ADD_EXECUTABLE(main
         source/lib.c
 )
 
-ADD_EXECUTABLE(source/main.c source/lib.c)
 TARGET_INCLUDE_DIRECTORIES(main PRIVATE source/lib/osx source/lib/linux)

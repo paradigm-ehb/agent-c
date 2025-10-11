@@ -24,7 +24,7 @@ typedef struct {
 
   unsigned long mem_size;
 
-} ram;
+} ram_s;
 
 unsigned long get_total(void);
 unsigned long get_usage(void);
@@ -39,6 +39,7 @@ void cpu_temperature(unsigned short delay);
 char* cpu_frequency(void);
 
 cpu_s _cpu;
+ram_s _ram;
 
 void *cpu_name(){
   int buffer_size = 256;
@@ -253,6 +254,7 @@ long device_up_time(void){
   return info.uptime;
 }
 
+#endif
 #ifdef __APPLE__
 
 #include <sys/types.h>
@@ -263,11 +265,35 @@ long device_up_time(void){
 #include <unistd.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <math.h>
 #include <cjson/cJSON.h>
 
 #define CONVERT_BYTES_TO_GIGABYTES 107374182   
 #define D 1073741824
+
+
+typedef struct{
+    char* name;
+} device_s;
+
+typedef struct {
+
+  int frequency;
+  char* name;
+  int threads;
+
+} cpu_s;
+
+typedef struct {
+    long double total;
+    long double available;
+} ram_s;
+
+typedef struct {
+    long long size;
+    short name;
+} disk_s;
+
+
 
 typedef struct {
 
@@ -288,7 +314,6 @@ unsigned long get_total(void);
 unsigned long get_usage(void);
 long device_up_time(void);
 float cpu_frequency(void);
-char* cpu_name(void);
 void size();
 void av_size();
 void* ram_i();
