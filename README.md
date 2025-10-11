@@ -7,5 +7,3 @@ helps users throuble shoot performance issues and do general checkups on devices
 
 The system code is written in C and will be imported in the backend through cgo.
 
-
-
