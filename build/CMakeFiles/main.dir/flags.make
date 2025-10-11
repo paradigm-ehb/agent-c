@@ -4,7 +4,7 @@
 # compile C with /usr/bin/cc
 C_DEFINES = 
 
-C_INCLUDES = 
+C_INCLUDES = -I/Users/nasr/synf/synf-sys/source/lib/osx
 
 C_FLAGSarm64 =  -arch arm64
 

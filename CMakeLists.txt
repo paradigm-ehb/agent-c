@@ -9,6 +9,7 @@ find_package(CURL REQUIRED)
 
 # add the executable
 ADD_EXECUTABLE(main
+<<<<<<< HEAD
 
         # OSX Files
         source/osx/cpu.c
@@ -30,3 +31,10 @@ ADD_EXECUTABLE(main
 
 TARGET_LINK_LIBRARIES(main PRIVATE CURL::libcurl)
 TARGET_INCLUDE_DIRECTORIES(main PRIVATE source/lib/osx source/lib/linux)
+=======
+    source/main.c
+    source/lib/osx/cpu.c
+)
+
+target_include_directories(main PRIVATE source/lib/osx)
+>>>>>>> 7e64275 (maocs now returns cpu name)

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <stddef.h>
 
 #include <stdio.h>
 #include <stdint.h>
@@ -12,7 +13,6 @@
 
 float cpu_frequency(void);
 char* cpu_name(void);
-void cpu_temperature(void);
 
 float cpu_frequency(void)
 {
@@ -26,19 +26,24 @@ float cpu_frequency(void)
     return freq;
 }
 
-char* cpu_name(void)
-{
-    char* cpu_name;
-    size_t size = sizeof(cpu_name);
-    if (sysctlbyname("ker.hostname", &cpu_name, &size, NULL, 0) < 0)
+char* cpu_name(void){
+
+    size_t size = 0;
+
+    if (sysctlbyname("machdep.cpu.brand_string", NULL, &size, NULL, 0) < 0)
         perror("sysctl"); 
 
-    return cpu_name;  
+
+    char *name = malloc(size);
+
+    if(sysctlbyname("machdep.cpu.brand_string", &name, &size, NULL, 0) < 0){
+        perror("sysctl");
+        free(name);
+        return NULL;
+    }
+
+   return name;  
 }
 
-void cpu_temperature(void)
-{
-    // Placeholder; macOS does not expose CPU temp directly without SMC/hacks return; 
-}
 #endif
 

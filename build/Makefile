@@ -129,6 +129,30 @@ main/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
 .PHONY : main/fast
 
+source/lib/osx/cpu.o: source/lib/osx/cpu.c.o
+.PHONY : source/lib/osx/cpu.o
+
+# target to build an object file
+source/lib/osx/cpu.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/source/lib/osx/cpu.c.o
+.PHONY : source/lib/osx/cpu.c.o
+
+source/lib/osx/cpu.i: source/lib/osx/cpu.c.i
+.PHONY : source/lib/osx/cpu.i
+
+# target to preprocess a source file
+source/lib/osx/cpu.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/source/lib/osx/cpu.c.i
+.PHONY : source/lib/osx/cpu.c.i
+
+source/lib/osx/cpu.s: source/lib/osx/cpu.c.s
+.PHONY : source/lib/osx/cpu.s
+
+# target to generate assembly for a file
+source/lib/osx/cpu.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/source/lib/osx/cpu.c.s
+.PHONY : source/lib/osx/cpu.c.s
+
 source/main.o: source/main.c.o
 .PHONY : source/main.o
 
@@ -162,6 +186,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... main"
+	@echo "... source/lib/osx/cpu.o"
+	@echo "... source/lib/osx/cpu.i"
+	@echo "... source/lib/osx/cpu.s"
 	@echo "... source/main.o"
 	@echo "... source/main.i"
 	@echo "... source/main.s"

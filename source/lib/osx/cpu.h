@@ -3,9 +3,8 @@
 
 #ifdef __APPLE__
 
-float get_cpu_freq(void);
-char* get_cpu_name(void);
-void get_cpu_temperature(void);
+float cpu_frequency(void);
+char* cpu_name(void);
 
 #endif
 #endif
