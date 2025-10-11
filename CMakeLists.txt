@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
 
 # Set the project name
@@ -9,32 +8,15 @@ find_package(CURL REQUIRED)
 
 # add the executable
 ADD_EXECUTABLE(main
-<<<<<<< HEAD
 
-        # OSX Files
-        source/osx/cpu.c
-        source/osx/ram.c
-        source/osx/disk.c
-        source/osx/device.c
-
-
-        # Linux Files
-        source/linux/cpu.c
-        source/linux/ram.c
-        source/linux/disk.c
-        source/linux/device.c
-
-        # Main File
         source/main.c
-
+        source/lib.c
 )
 
 TARGET_LINK_LIBRARIES(main PRIVATE CURL::libcurl)
 TARGET_INCLUDE_DIRECTORIES(main PRIVATE source/lib/osx source/lib/linux)
-=======
     source/main.c
-    source/lib/osx/cpu.c
+    source/lib.c
 )
 
 target_include_directories(main PRIVATE source/lib/osx)
->>>>>>> 7e64275 (maocs now returns cpu name)

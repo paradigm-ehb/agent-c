@@ -1,0 +1,9 @@
+name: main-build
+run-name: actor: ${{ gitea.actor }}
+on: [push]
+  
+  jobs: 
+    main-compile:
+      runs-on: ubuntue-latest
+      steps:
+       -  run: echo "Workflow is running"
