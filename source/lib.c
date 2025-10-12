@@ -294,10 +294,11 @@ void device_hostname(){
 
 void device_up_time(){
 
-  struct timeval boottime;
+  // struct timeval boottime;
+  unsigned long boottime ; 
   unsigned long len = sizeof(boottime);
 
-  if (sysctlbyname("kern.boottime", &boottime, NULL, NULL, NULL) == -1){
+  if (sysctlbyname("kern.boottime", &boottime, NULL, NULL, len) == -1){
     perror("sysctl error");
     return;
   }
@@ -319,7 +320,7 @@ void device_model(){
     return;
   }
 
-  _device.hostname = hostname;
+  _device.name = model_name;
   return;
 
 }
