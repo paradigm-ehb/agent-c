@@ -27,16 +27,23 @@ void av_mem_size();
 void device_up_time();
 void device_os_version();
 void device_hostname();
+void device_model();
 
-cpu_s _cpu;
-ram_s _ram;
-disk_s _disk;
-device_s _device;
+void init_device();
 
 
 #ifdef __gnu_linux__
 
 #include <sys/sysinfo.h>
+
+void init_device() {
+
+  device_s _device;
+
+  _device.&name = device_model();  
+  _device.&hostname = 
+
+}
 
 void cpu_name(){
   int buffer_size = 256;
@@ -326,6 +333,15 @@ void device_os_version() {
   _device.os_version = os_version;
   return;
 
+
+}
+
+void init_device() {
+
+  device_s _device;
+
+  _device.name = device_model();  
+  _device.hostname = 
 
 }
 

@@ -21,9 +21,17 @@ typedef struct {
 } disk_s;
 
 typedef struct { 
-  char* name;
-  char* hostname;
-  char* os_version;
+
+  char *name;
+  char *hostname;
+  char *os_version;
+  int uptime;
+  cpu_s cpu;
+  ram_s ram;
+  disk_s disk;
+
+
 } device_s;
+
 
 #endif

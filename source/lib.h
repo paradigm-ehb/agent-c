@@ -1,9 +1,10 @@
 #ifndef LIB_H
 #define LIB_H
+#include "types.h" 
 
 #ifdef __APPLE__
 
-void cpu_name();
+void cpu_name(cpu_s cpu);
 void cpu_threads();
 void cpu_temperature();
 void cpu_frequency();
