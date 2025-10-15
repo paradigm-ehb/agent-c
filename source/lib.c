@@ -13,10 +13,10 @@
 #define CONVERT_BYTES_TO_GIGABYTES 107374182   
 #define D 1073741824
 
-void cpu_name();
-void cpu_threads();
-void cpu_temperature();
-void cpu_frequency();
+void cpu_name(cpu_s cpu);
+void cpu_threads(cpu_s cpu);
+void cpu_temperature(cpu_s cpu);
+void cpu_frequency(cpu_s cpu);
 
 void get_total();
 void get_usage();
@@ -293,7 +293,7 @@ void device_up_time(){
   }
 }
 
-void device_model(){
+void device_model(device_s _device){
 
   char *model_name;
   size_t size = 0;
@@ -314,7 +314,7 @@ void device_model(){
 
 }
 
-void device_os_version() {
+void device_os_version(device_s _device) {
 
   char *os_version;
   size_t size = 0;
@@ -340,7 +340,7 @@ void init_device() {
 
   device_s _device;
 
-  _device.name = device_model();  
+  _device.name = device_model(_device);  
   _device.hostname = 
 
 }
