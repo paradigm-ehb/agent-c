@@ -1,9 +1,10 @@
 #include <pthread.h>
 #include <curl/curl.h>
 #include <cjson/cJSON.h>
-#include "lib.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "lib.h"
+
 
 void *gather_cpu_information();
 void *gather_ram_information();

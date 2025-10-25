@@ -1,4 +1,12 @@
-#include "lib.h"
+
+/*
+ * 
+ * Author: nasr
+ * Year: 2025-2026
+ *
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -7,16 +15,23 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include "types.h"
+#include "lib.h"
 
 #define MAXC 1024
 #define MAXC_CHAR 256
 #define CONVERT_BYTES_TO_GIGABYTES 107374182   
 #define D 1073741824
 
-void cpu_name(cpu_s cpu);
-void cpu_threads(cpu_s cpu);
-void cpu_temperature(cpu_s cpu);
-void cpu_frequency(cpu_s cpu);
+/*  
+ * prototype function declarations
+ * cpu, ram, disk, device
+ *
+ */
+
+void cpu_name();
+void cpu_threads();
+void cpu_temperature();
+void cpu_frequency();
 
 void get_total();
 void get_usage();
@@ -29,23 +44,13 @@ void device_os_version();
 void device_hostname();
 void device_model();
 
-void init_device();
-
 
 #ifdef __gnu_linux__
 
 #include <sys/sysinfo.h>
 
-void init_device() {
 
-  device_s _device;
-
-  _device.&name = device_model();  
-  _device.&hostname = 
-
-}
-
-void cpu_name(){
+void cpu_name() {
   int buffer_size = 256;
   char cpu_name[buffer_size];
 
@@ -70,7 +75,7 @@ void cpu_name(){
     }
   }
 
-  _cpu.name = cpu_name;
+  u_cpu->name = cpu_name;
 
 }
 
@@ -80,7 +85,7 @@ void cpu_frequency() {
   FILE *fp = fopen("/proc/cpuinfo", "r");
   if (!fp) {
     printf("can't open /proc/cpuinfo");
-    return NULL;
+    return;
   }
 
   while (fgets(buffer, MAXC_CHAR, fp)) {
@@ -95,57 +100,43 @@ void cpu_frequency() {
     }
 
     fclose(fp);
-    return buffer;
+    u_cpu->frequency = buffer;
   }
-  return NULL;
+  return;
 }
 
-unsigned long get_total(){
+void mem_size() {
 
   struct sysinfo info;
 
   if (sysinfo(&info) != 0) {
     perror("sysinfo");
-    return 1;
+    return;
   }
 
   long total_ram = info.totalram * info.mem_unit; 
-  return total_ram;
+  u_ram->total = total_ram;
 
 }
 
-void mem_size(){
 
+void av_mem_size() {
   struct sysinfo info;
 
   if (sysinfo(&info) != 0) {
     perror("sysinfo");
-    return 1;
-  }
-
-  long total_ram = info.totalram * info.mem_unit;
-  return total_ram;
-
-}
-
-void av_mem_size()
-{
-  struct sysinfo info;
-
-  if (sysinfo(&info) != 0) {
-    perror("sysinfo");
-    return 1;
   }
 
   long total_ram = info.totalram * info.mem_unit;
   long free_ram = info.freeram * info.mem_unit;
 
-  return total_ram - free_ram;
+  u_ram->available = free_ram;
 }
 
 
-void cpu_temperature()
-{
+void cpu_temperature() {
+
+  int delay = 0;
   while (1)
   {
     sleep(delay);
@@ -165,30 +156,26 @@ void cpu_temperature()
   }
 }
 
-unsigned long get_usage() 
-{
-  struct sysinfo info;
 
-  if (sysinfo(&info) != 0) {
-    perror("sysinfo");
-    return 1;
-  }
-
-  long total_ram = info.totalram * info.mem_unit; 
-  long free_ram = info.freeram * info.mem_unit;   
-
-  return total_ram - free_ram;
-}
-
-unsigned long device_up_time(){
+void device_up_time() {
   struct sysinfo info;
   if (sysinfo(&info) == -1)
     perror("sysinfo");
 
-  return info.uptime;
+  u_device->uptime = info.uptime;
+}
+
+
+void device_mdoel() {
+
+
+  return;
+
 }
 
 #endif
+
+
 
 #ifdef __APPLE__
 
@@ -211,7 +198,7 @@ void cpu_name() {
     return;
   }
 
-  _cpu.name = name;
+  u_cpu->name = name;
   return;
 }
 
@@ -222,7 +209,7 @@ void cpu_threads() {
   if (sysctlbyname("machdep.cpu.thread_count", &count, &len, NULL, 0) < 0)
     perror("error in retrieving the cpu threads count\n");
 
-  _cpu.threads = count;
+  u_cpu->threads = count;
   return;
 }
 
@@ -237,9 +224,9 @@ void cpu_frequency(){
   return;
 }
 
-void cpu_temperature(cpu_s cpu)
+void cpu_temperature()
 {
-  cpu.temperature = 0;
+  u_cpu->temperature = 0;
   return;
 }
 
@@ -249,7 +236,7 @@ void mem_size() {
   if (sysctlbyname("hw.memsize", &size, &len, NULL, 0) < 0)
     perror("error in retrieving the memory size");
 
-  _ram.total = size / D;
+  u_ram->total = size / D;
 }
 
 void mem_av_size() {
@@ -258,7 +245,7 @@ void mem_av_size() {
   if (sysctlbyname("hw.memsize_usable", &size, &len, NULL, 0) < 0)
     perror("error in retrieving the available memory size");
 
-  _ram.available = size / D;
+  u_ram->available = size / D;
 }
 
 void device_hostname(){
@@ -277,7 +264,7 @@ void device_hostname(){
     return ;
   }
 
-  _device.name = name;
+  u_device->name = name;
   return ;
 }
 
@@ -293,7 +280,7 @@ void device_up_time(){
   }
 }
 
-void device_model(device_s _device){
+void device_model(){
 
   char *model_name;
   size_t size = 0;
@@ -309,12 +296,12 @@ void device_model(device_s _device){
     return;
   }
 
-  _device.name = model_name;
+  u_device->name = model_name;
   return;
 
 }
 
-void device_os_version(device_s _device) {
+void device_os_version() {
 
   char *os_version;
   size_t size = 0;
@@ -330,21 +317,10 @@ void device_os_version(device_s _device) {
     return ;
   }
 
-  _device.os_version = os_version;
+  u_device->os_version = os_version;
   return;
 
 
 }
-
-void init_device() {
-
-  device_s _device;
-
-  _device.name = device_model(_device);  
-  _device.hostname = 
-
-}
-
-
 
 #endif

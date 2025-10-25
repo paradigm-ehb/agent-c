@@ -4,7 +4,7 @@
 typedef struct {
 
   char* name;
-  int frequency;
+  char* frequency;
   int temperature;
   int threads;
 
@@ -32,6 +32,13 @@ typedef struct {
 
 
 } device_s;
+
+
+extern cpu_s *u_cpu ;
+extern ram_s *u_ram ;
+extern disk_s *u_disk ;
+extern device_s *u_device ;
+
 
 
 #endif
