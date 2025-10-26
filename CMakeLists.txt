@@ -5,9 +5,5 @@ SET(CMAKE_C_STANDARD_REQUIRED TRUE)
 
 PROJECT(synf-core)
 
-ADD_EXECUTABLE(main
-
-        source/main.c
-        source/lib.c
-)
+ADD_EXECUTABLE(main source/main.c source/lib.c)
 

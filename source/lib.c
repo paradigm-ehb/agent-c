@@ -31,18 +31,19 @@ void cpu_name();
 void cpu_threads();
 void cpu_temperature();
 void cpu_frequency();
-
 void get_total();
 void get_usage();
-
 void mem_size();
 void av_mem_size();
-
 void device_up_time();
 void device_os_version();
 void device_hostname();
 void device_model();
 
+cpu_s *u_cpu ;
+ram_s *u_ram ;
+disk_s *u_disk ;
+device_s *u_device ;
 
 #ifdef __gnu_linux__
 
