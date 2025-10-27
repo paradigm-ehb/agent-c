@@ -9,8 +9,8 @@ void cpu_threads();
 void cpu_temperature();
 void cpu_frequency();
 
-void disk_size();
-void size();
+void get_total();
+void get_usage();
 
 void av_size();
 void ram_info();

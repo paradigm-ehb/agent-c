@@ -213,7 +213,7 @@ void cpu_threads() {
   return;
 }
 
-void cpu_frequency(){
+void cpu_frequency() {
   uint64_t freq = 0;
   size_t size = sizeof(freq);
 
@@ -224,10 +224,8 @@ void cpu_frequency(){
   return;
 }
 
-void cpu_temperature()
-{
+void cpu_temperature() {
   u_cpu->temperature = 0;
-  return;
 }
 
 void mem_size() {
@@ -246,6 +244,17 @@ void mem_av_size() {
     perror("error in retrieving the available memory size");
 
   u_ram->available = size / D;
+}
+
+void get_total() {
+
+
+}
+
+void get_usage() {
+
+
+
 }
 
 void device_hostname(){
