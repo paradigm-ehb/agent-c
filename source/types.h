@@ -26,10 +26,6 @@ typedef struct {
   char *hostname;
   char *os_version;
   int uptime;
-  cpu_s cpu;
-  ram_s ram;
-  disk_s disk;
-
 
 } device_s;
 
