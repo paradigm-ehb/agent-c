@@ -4,6 +4,6 @@ CC=clang
 SOURCE=main.c
 OUT=main
 
-set -e
+set -xe
 
 $CC --std=c99 -g "$SOURCE" -lprocps -o "$OUT"
