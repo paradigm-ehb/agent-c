@@ -397,24 +397,23 @@ list_processes()
 	return 0;
 }
 
-int
-terminate_process(char *pid)
-{
-	pid_t p ;
-
-	if (kill(p, SIGTERM) == -1)
-	{
-		perror("failed to kill pid: %s", pid);
-		return 1;
-	}
-	return 0;
-
-}
-
+// int
+// terminate_process(char *pid)
+// {
+// 	pid_t p ;
+//
+// 	if (kill(p, SIGTERM) == -1)
+// 	{
+// 		perror("failed to kill pid: %s", pid);
+// 		return 1;
+// 	}
+// 	return 0;
+//
+// }
+//
 int 
 main() 
 {
-	ezway();
 	// Arena *arena; 
 	//
 	Cpu *cpu;
