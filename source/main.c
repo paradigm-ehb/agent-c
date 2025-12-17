@@ -4,6 +4,7 @@
  * */
 
 #include <unistd.h>
+#include <signal.h>
 #include <stdint.h> 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +12,6 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <proc/readproc.h>
-#include <signal.h>
 
 // TODO(nasr): create and start virtual machines using KVM - QEMU - LIBVIRT
 // #include <libvirt/libvirt.h>
@@ -398,9 +398,15 @@ list_processes()
 }
 
 int
-kill_process(char *pid)
+terminate_process(char *pid)
 {
+	pid_t p ;
 
+	if (kill(p, SIGTERM) == -1)
+	{
+		perror("failed to kill pid: %s", pid);
+		return 1;
+	}
 	return 0;
 
 }
