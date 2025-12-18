@@ -2,14 +2,15 @@
  * Author: nasr
  * Year: 2025-2026
  * */
+#define _POSIX_C_SOURCE 200809L
 
 #include <unistd.h>
 #include <signal.h>
+#include <sys/types.h>
 #include <stdint.h> 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 #include <dirent.h>
 
 // TODO(nasr): create and start virtual machines using KVM - QEMU - LIBVIRT
@@ -452,13 +453,12 @@ device_data(Device *device)
 }
 
 int
-terminate_process(char *pid)
+terminate_process(int pid)
 {
-	pid_t p ;
+	pid_t p = pid ;
 
 	if (kill(p, SIGTERM) == -1)
 	{
-		perror("failed to kill pid: %s", pid);
 		return 1;
 	}
 	return 0;
