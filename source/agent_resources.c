@@ -124,7 +124,7 @@ cpu_data(Cpu *cpu)
 			start++;
 
 		char *end = strchr(start, '\n');
-   
+ 
 		if (!end)
 			end = start + strlen(start);
 
