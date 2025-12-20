@@ -2,47 +2,36 @@
 set -eu
 
 CC=cc
+AR=ar
 
-SRC_DIR=source
-INC_DIR=include
+SRC=agent_resources.c
 OUT_DIR=build
-
-SRC_FILES="
-$SRC_DIR/agent_resources.c
-"
-
-OUT="$OUT_DIR/agent_resources"
+OUT_OBJ=$OUT_DIR/agent_resources.o
+OUT_LIB=$OUT_DIR/libagent_resources.a
 
 CFLAGS="
--std=c99
--xc
-
--I$INC_DIR
-
+-std=c11
 -Wall
 -Wextra
 -Wpedantic
 -Wshadow
 -Wconversion
--Wsign-conversion
 -Wundef
 -Wpointer-arith
 -Wcast-align
 -Wcast-qual
 -Wwrite-strings
--Wswitch-enum
 -Wformat=2
--Wstrict-aliasing=2
-
--Werror=implicit-int
--Werror=incompatible-pointer-types
--Werror=return-type
-
 -D_POSIX_C_SOURCE=200809L
 "
 
 mkdir -p "$OUT_DIR"
 
-$CC $CFLAGS $SRC_FILES -o "$OUT"
+echo "Compiling object..."
+$CC $CFLAGS -c "$SRC" -o "$OUT_OBJ"
 
-$OUT
+echo "Creating static library..."
+$AR rcs "$OUT_LIB" "$OUT_OBJ"
+
+echo "Done:"
+echo "  $OUT_LIB"

@@ -8,17 +8,15 @@
 
 #define _POSIX_C_SOURCE 200809L
 
+#include "agent_resources.h"
+
 #include <dirent.h>
 #include <errno.h>
 #include <signal.h>
-#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-
-#include <agent_resources.h>
 
 #define MAXC_CHAR 256
 
@@ -136,7 +134,7 @@ AgentCpu *agent_cpu_create(void) { return calloc(1, sizeof(AgentCpu)); }
  * Return: AGENT_OK on success, AGENT_ERR_INVALID if out is NULL,
  *         AGENT_ERR_IO if /proc/cpuinfo cannot be opened
  */
-AgentResult agent_cpu_read(AgentCpu *out) {
+int agent_cpu_read(AgentCpu *out) {
   if (!out)
     return AGENT_ERR_INVALID;
 
@@ -192,7 +190,7 @@ AgentRam *agent_ram_create(void) { return calloc(1, sizeof(AgentRam)); }
  * Return: AGENT_OK on success, AGENT_ERR_INVALID if out is NULL,
  *         AGENT_ERR_IO if /proc/meminfo cannot be opened
  */
-AgentResult agent_ram_read(AgentRam *out) {
+int agent_ram_read(AgentRam *out) {
   if (!out)
     return AGENT_ERR_INVALID;
 
@@ -246,7 +244,7 @@ AgentDisk *agent_disk_create(void) { return calloc(1, sizeof(AgentDisk)); }
  * Return: AGENT_OK on success, AGENT_ERR_INVALID if out is NULL,
  *         AGENT_ERR_IO if /proc/partitions cannot be opened
  */
-AgentResult agent_disk_read(AgentDisk *out) {
+int agent_disk_read(AgentDisk *out) {
   if (!out)
     return AGENT_ERR_INVALID;
 
@@ -346,7 +344,7 @@ void collect_processes(Device *dev) {
  * Return: AGENT_OK on success, AGENT_ERR_INVALID if out is NULL,
  *         AGENT_ERR_IO if required files cannot be opened
  */
-AgentResult agent_device_read(AgentDevice *out) {
+int agent_device_read(AgentDevice *out) {
   if (!out)
     return AGENT_ERR_INVALID;
 
@@ -397,7 +395,7 @@ void agent_device_destroy(AgentDevice *d) {
  *         AGENT_ERR_PERM if permission denied,
  *         AGENT_ERR_IO for other errors
  */
-AgentResult agent_process_kill(pid_t pid, int signal) {
+int agent_process_kill(pid_t pid, int signal) {
   if (pid <= 0)
     return AGENT_ERR_INVALID;
 
@@ -409,60 +407,4 @@ AgentResult agent_process_kill(pid_t pid, int signal) {
     return AGENT_ERR_IO;
   }
   return AGENT_OK;
-}
-
-/*
- * main - Demonstration program for agent resource monitoring
- *
- * Creates instances of all agent types, reads system information,
- * and prints formatted output showing CPU, RAM, disk, and device data.
- *
- * Return: 0 on success
- */
-int main(void) {
-  AgentCpu *cpu = agent_cpu_create();
-  agent_cpu_read(cpu);
-
-  printf("CPU\n");
-  printf("  Vendor    : %s\n", cpu->data.vendor);
-  printf("  Model     : %s\n", cpu->data.model);
-  printf("  Frequency : %s MHz\n", cpu->data.frequency);
-  printf("  Cores     : %s\n\n", cpu->data.cores);
-
-  AgentRam *ram = agent_ram_create();
-  agent_ram_read(ram);
-
-  printf("RAM\n");
-  printf("  Total : %s kB\n", ram->data.total);
-  printf("  Free  : %s kB\n\n", ram->data.free);
-
-  AgentDisk *disk = agent_disk_create();
-  agent_disk_read(disk);
-
-  printf("DISK PARTITIONS\n");
-  for (size_t i = 0; i < disk->data.count; ++i) {
-    Partition *p = &disk->data.parts[i];
-    printf("  %s  (major=%lu minor=%lu blocks=%lu)\n", p->name, p->major,
-           p->minor, p->blocks);
-  }
-  printf("\n");
-
-  AgentDevice *dev = agent_device_create();
-  agent_device_read(dev);
-
-  printf("DEVICE\n");
-  printf("  OS Version : %s", dev->data.os_version);
-  printf("  Uptime     : %s", dev->data.uptime);
-
-  printf("  Processes  : %zu\n", dev->data.procs_count);
-  for (size_t i = 0; i < dev->data.procs_count && i < 10; ++i) {
-    printf("    PID %s\n", dev->data.procs[i]);
-  }
-
-  agent_cpu_destroy(cpu);
-  agent_ram_destroy(ram);
-  agent_disk_destroy(disk);
-  agent_device_destroy(dev);
-
-  return 0;
 }
