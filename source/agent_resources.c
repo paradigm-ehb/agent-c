@@ -1,416 +1,468 @@
 /*
- * Author: nasr
- * Year: 2025-2026
- * */
+ * name: Abdellah El Morabit
+ * organization: Paradigm-Ehb
+ * year: 2025-2026
+ * description: resources gathering library
+ *
+ */
+
 #define _POSIX_C_SOURCE 200809L
 
-#include <unistd.h>
+#include <dirent.h>
+#include <errno.h>
 #include <signal.h>
-#include <sys/types.h>
-#include <stdint.h> 
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h>
+#include <unistd.h>
 
-// TODO(nasr): create and start virtual machines using KVM - QEMU - LIBVIRT
-// #include <libvirt/libvirt.h>
+#include <agent_resources.h>
 
 #define MAXC_CHAR 256
 
-typedef struct
-{
-	uint64_t major;
-	uint64_t minor;
-	uint64_t blocks;
-	char	 *name;
+/*
+ * Represents a disk partition with major/minor device numbers and block count.
+ */
+typedef struct {
+  uint64_t major;
+  uint64_t minor;
+  uint64_t blocks;
+  char *name;
+} Partition;
 
-} Partitions;
-
-typedef struct 
-{
-
-	char vendor[MAXC_CHAR]; 
-	char model[MAXC_CHAR]; 
-	char frequency[MAXC_CHAR]; 
-	char cores[MAXC_CHAR]; 
-
+/*
+ * CPU information structure containing vendor, model, frequency, and core
+ * count.
+ */
+typedef struct {
+  char vendor[MAXC_CHAR];
+  char model[MAXC_CHAR];
+  char frequency[MAXC_CHAR];
+  char cores[MAXC_CHAR];
 } Cpu;
 
-typedef struct 
-{
-	char total[MAXC_CHAR];
-	char free[MAXC_CHAR];
+/*
+ * RAM information structure containing total and free memory.
+ */
+typedef struct {
+  char total[MAXC_CHAR];
+  char free[MAXC_CHAR];
 } Ram;
 
-typedef struct 
-{
-	long size;
-	char *name;
-	Partitions *part;
+/*
+ * Dynamic array of disk partitions with capacity tracking.
+ */
+typedef struct {
+  Partition *parts;
+  size_t count;
+  size_t cap;
 } Disk;
 
-typedef struct 
-{ 
-
-	char hostname[MAXC_CHAR]; 
-	char os_version[MAXC_CHAR];
-	char uptime[MAXC_CHAR];
-	char **procs;
-	int	 procs_count;
-
+/*
+ * Device information including OS version, uptime, and running processes.
+ */
+typedef struct {
+  char os_version[MAXC_CHAR];
+  char uptime[MAXC_CHAR];
+  char **procs;
+  size_t procs_count;
 } Device;
 
+struct AgentCpu {
+  Cpu data;
+};
 
-// math heper functions
-// @param takes a base and an exponent
-int
-ipow(int base , int exp ) 
-{
+struct AgentRam {
+  Ram data;
+};
 
-	uint64_t result = 0;
-	for (int i = 0; i < exp; ++i) {
+struct AgentDisk {
+  Disk data;
+};
 
-		result *= base;
-	}
+struct AgentDevice {
+  Device data;
+};
 
-	return result;
-
-	return 0;
+/*
+ * disk_push_partition - Add a partition to the disk structure
+ * @d: Pointer to the Disk structure
+ * @p: Partition to add
+ *
+ * Dynamically grows the partition array if needed. Doubles capacity when full.
+ * If realloc fails, the partition is not added and function returns silently.
+ */
+void disk_push_partition(Disk *d, Partition p) {
+  if (d->count == d->cap) {
+    size_t ncap = d->cap ? d->cap * 2 : 8;
+    Partition *np = realloc(d->parts, ncap * sizeof(*np));
+    if (!np)
+      return;
+    d->parts = np;
+    d->cap = ncap;
+  }
+  d->parts[d->count++] = p;
 }
 
-int
-fpow(double base, double exp) 
-{
-
-	float result = 0;
-
-	for (int i = 0; i < exp; ++i) {
-
-		result *= base;
-	}
-
-	return result;
+/*
+ * is_numeric - Check if a string contains only digits
+ * @s: String to check
+ *
+ * Return: 1 if string contains only numeric characters, 0 otherwise
+ */
+int is_numeric(const char *s) {
+  for (; *s; ++s)
+    if (*s < '0' || *s > '9')
+      return 0;
+  return 1;
 }
 
+/*
+ * agent_cpu_create - Allocate and initialize a new AgentCpu structure
+ *
+ * Return: Pointer to newly allocated AgentCpu, or NULL on allocation failure
+ */
+AgentCpu *agent_cpu_create(void) { return calloc(1, sizeof(AgentCpu)); }
 
-void
-cpu_data(Cpu *cpu) 
-{
-	char basic_cpu_info[]	= "/proc/cpuinfo";
+/*
+ * agent_cpu_read - Read CPU information from /proc/cpuinfo
+ * @out: Pointer to AgentCpu structure to populate
+ *
+ * Reads vendor_id, model name, cpu MHz, and cpu cores from /proc/cpuinfo.
+ * The function reads the first occurrence of each field.
+ *
+ * Return: AGENT_OK on success, AGENT_ERR_INVALID if out is NULL,
+ *         AGENT_ERR_IO if /proc/cpuinfo cannot be opened
+ */
+AgentResult agent_cpu_read(AgentCpu *out) {
+  if (!out)
+    return AGENT_ERR_INVALID;
 
-	char vendor_id[]		= { "vendor_id"};
-	char model[]			= { "model name"};
-	char frequency[]		= { "cpu MHz"};
-	char cores[]			= { "cpu cores"};
+  FILE *f = fopen("/proc/cpuinfo", "r");
+  if (!f)
+    return AGENT_ERR_IO;
 
-	FILE *file = fopen(basic_cpu_info, "r");
-	if (!file)
-	{
-		//TODO(nasr): write this to the created agent log system
-		return;
-	}
+  char buf[MAXC_CHAR];
+  while (fgets(buf, sizeof(buf), f)) {
+    char *colon = strchr(buf, ':');
+    if (!colon)
+      continue;
 
-	char buffer[MAXC_CHAR] = "";
-	while(fgets(buffer, sizeof(buffer), file) != NULL)
-	{
-		char *colon = strchr(buffer, ':');
-		if (!colon)
-			continue; 
+    char *val = colon + 1;
+    while (*val == ' ')
+      val++;
 
-		char *start = colon + 1;
-		 
-		while (*start == ' ')
-			start++;
+    size_t len = strcspn(val, "\n");
 
-		char *end = strchr(start, '\n');
- 
-		if (!end)
-			end = start + strlen(start);
+    if (!strncmp(buf, "vendor_id", 9))
+      memcpy(out->data.vendor, val, len);
+    else if (!strncmp(buf, "model name", 10))
+      memcpy(out->data.model, val, len);
+    else if (!strncmp(buf, "cpu MHz", 7))
+      memcpy(out->data.frequency, val, len);
+    else if (!strncmp(buf, "cpu cores", 9))
+      memcpy(out->data.cores, val, len);
+  }
 
-		size_t length = (size_t)(end - start);
-
-		if ((strncmp(buffer, vendor_id, sizeof(vendor_id) - 1)) == 0) 
-		{
-			memcpy(cpu->vendor, start, length);
-			cpu->vendor[length] = '\0';
-		}
-
-		if ((strncmp(buffer, model, sizeof(model) - 1)) == 0) 
-		{
-			memcpy(cpu->model, start, length);
-			cpu->model[length] = '\0';
-		}
-
-		if ((strncmp(buffer, frequency , sizeof(frequency) - 1)) == 0) 
-		{
-			memcpy(cpu->frequency, start, length);
-			cpu->frequency[length] = '\0';
-		}
-
-		if ((strncmp(buffer, cores, sizeof(cores) - 1)) == 0) 
-		{
-			memcpy(cpu->cores, start, length);
-			cpu->cores[length] = '\0';
-		}
-	}
-
-	fclose(file);
+  fclose(f);
+  return AGENT_OK;
 }
 
-void
-memory_data(Ram *ram) 
-{
+/*
+ * agent_cpu_destroy - Free an AgentCpu structure
+ * @c: Pointer to AgentCpu to free
+ */
+void agent_cpu_destroy(AgentCpu *c) { free(c); }
 
-	char mem_info[]	= "/proc/meminfo";
+/*
+ * agent_ram_create - Allocate and initialize a new AgentRam structure
+ *
+ * Return: Pointer to newly allocated AgentRam, or NULL on allocation failure
+ */
+AgentRam *agent_ram_create(void) { return calloc(1, sizeof(AgentRam)); }
 
-	char total[]		= { "MemTotal"};
-	char free[]			= { "MemFree"};
+/*
+ * agent_ram_read - Read RAM information from /proc/meminfo
+ * @out: Pointer to AgentRam structure to populate
+ *
+ * Reads MemTotal and MemFree from /proc/meminfo in kilobytes.
+ *
+ * Return: AGENT_OK on success, AGENT_ERR_INVALID if out is NULL,
+ *         AGENT_ERR_IO if /proc/meminfo cannot be opened
+ */
+AgentResult agent_ram_read(AgentRam *out) {
+  if (!out)
+    return AGENT_ERR_INVALID;
 
-	FILE *file = fopen(mem_info, "r");
-	if (!file)
-	{
-		//TODO(nasr): write this to the created agent log system
-		fclose(file);
-		return;
-	}
+  FILE *f = fopen("/proc/meminfo", "r");
+  if (!f)
+    return AGENT_ERR_IO;
 
-	char buffer[MAXC_CHAR] = "";
-	while(fgets(buffer, sizeof(buffer), file) != NULL)
-	{
-		char *colon = strchr(buffer, ':');
-		if (!colon)
-			continue; 
- 
-		char *start = colon + 1;
-		 
-		while (*start == ' ')
-			start++;
+  char buf[MAXC_CHAR];
+  while (fgets(buf, sizeof(buf), f)) {
+    char *colon = strchr(buf, ':');
+    if (!colon)
+      continue;
 
-		char *end = strchr(start, 'k');
+    char *val = colon + 1;
+    while (*val == ' ')
+      val++;
 
-		if (!end)
-			end = start + strlen(start);
+    size_t len = strcspn(val, " k\n");
 
-		size_t length = (size_t)(end - start);
+    if (!strncmp(buf, "MemTotal", 8))
+      memcpy(out->data.total, val, len);
+    else if (!strncmp(buf, "MemFree", 7))
+      memcpy(out->data.free, val, len);
+  }
 
-		if ((strncmp(buffer, total, sizeof(total) - 1)) == 0) 
-		{
-			memcpy(ram->total, start, length);
-			ram->total[length] = '\0';
-		}
-
-		if ((strncmp(buffer, free, sizeof(free) - 1)) == 0) 
-		{
-			memcpy(ram->free, start, length);
-			ram->free[length] = '\0';
-		}
-
-	}
-	fclose(file);
-}
-// return the int in the buffer
-// cool code but won't use it propably :(
-uint64_t
-*get_part_num(char *input)
-{
-	uint64_t *major = malloc(sizeof(uint64_t));
-	while (*input && *input == ' ')
-	{
-		input++;
-	}
-
-	while (*input >= '0' && *input <= '9')
-	{
-		// add the current index ascii code - the ascii code of 0 to get the integer
-		// then multiply the major value by 10 to insert the next value
-		*major = (*major * 10) + (*input - '0');
-		input++;
-	}
-
-	return major;
+  fclose(f);
+  return AGENT_OK;
 }
 
+/*
+ * agent_ram_destroy - Free an AgentRam structure
+ * @r: Pointer to AgentRam to free
+ */
+void agent_ram_destroy(AgentRam *r) { free(r); }
 
-void disk_data(Disk *disk) {
+/*
+ * agent_disk_create - Allocate and initialize a new AgentDisk structure
+ *
+ * Return: Pointer to newly allocated AgentDisk, or NULL on allocation failure
+ */
+AgentDisk *agent_disk_create(void) { return calloc(1, sizeof(AgentDisk)); }
 
-	if (!disk->part)
-		perror("nothing allocated for part");
+/*
+ * agent_disk_read - Read disk partition information from /proc/partitions
+ * @out: Pointer to AgentDisk structure to populate
+ *
+ * Reads all partitions from /proc/partitions, storing major/minor device
+ * numbers, block count, and device name for each partition. Skips the header
+ * line and any malformed entries.
+ *
+ * Return: AGENT_OK on success, AGENT_ERR_INVALID if out is NULL,
+ *         AGENT_ERR_IO if /proc/partitions cannot be opened
+ */
+AgentResult agent_disk_read(AgentDisk *out) {
+  if (!out)
+    return AGENT_ERR_INVALID;
 
-	char disk_info[] = "/proc/partitions";
+  FILE *f = fopen("/proc/partitions", "r");
+  if (!f)
+    return AGENT_ERR_IO;
 
-	char buffer[MAXC_CHAR] = "";
-	FILE *file = fopen(disk_info, "r");
-	if (!file)
-		return;
+  char buf[MAXC_CHAR];
+  fgets(buf, sizeof(buf), f);
 
-	fgets(buffer, sizeof(buffer), file);
+  while (fgets(buf, sizeof(buf), f)) {
+    Partition p = {0};
+    char name[MAXC_CHAR];
 
-	while (fgets(buffer, sizeof(buffer), file) != NULL)
-	{
-		char num_buf[MAXC_CHAR] = "";
-		char name_buf[MAXC_CHAR] = "";
+    if (sscanf(buf, "%lu %lu %lu %255s", &p.major, &p.minor, &p.blocks, name) !=
+        4)
+      continue;
 
-		size_t num_idx = 0;
-		size_t name_idx = 0;
-		int field = 0;
+    p.name = strdup(name);
+    if (!p.name)
+      continue;
 
-		for (size_t i = 0; buffer[i] && buffer[i] != '\n'; i++)
-		{
-			if (buffer[i] >= '0' && buffer[i] <= '9')
-			{
-				num_buf[num_idx++] = buffer[i];
-			}
-			else if (buffer[i] == ' ')
-			{
-				if (num_idx > 0)
-				{
-					num_buf[num_idx] = '\0';
+    disk_push_partition(&out->data, p);
+  }
 
-					if (field == 0)
-						disk->part->major = atoi(num_buf);
-					else if (field == 1)
-						disk->part->minor = atoi(num_buf);
-					else if (field == 2)
-						disk->part->blocks = atoi(num_buf);
-
-					field++;
-					num_idx = 0;
-				}
-			}
-			else
-			{
-				name_buf[name_idx++] = buffer[i];
-			}
-		}
-
-		name_buf[name_idx] = '\0';
-
-		disk->part->name = malloc(sizeof(char) *name_idx);
-		strcpy(disk->part->name, name_buf);
-
-	}
-
-	fclose(file);
+  fclose(f);
+  return AGENT_OK;
 }
 
-// own impementation
-void
-get_processes(Device *device)
-{
-    const char *path = "/proc";
-    struct dirent *entry;
+/*
+ * agent_disk_destroy - Free an AgentDisk structure and all partition data
+ * @d: Pointer to AgentDisk to free
+ *
+ * Frees all dynamically allocated partition names and the partition array.
+ */
+void agent_disk_destroy(AgentDisk *d) {
+  if (!d)
+    return;
+  for (size_t i = 0; i < d->data.count; ++i)
+    free(d->data.parts[i].name);
+  free(d->data.parts);
+  free(d);
+}
 
-    size_t pid_count = 0;
-    size_t pid_cap   = 8;
+/*
+ * agent_device_create - Allocate and initialize a new AgentDevice structure
+ *
+ * Return: Pointer to newly allocated AgentDevice, or NULL on allocation failure
+ */
+AgentDevice *agent_device_create(void) {
+  return calloc(1, sizeof(AgentDevice));
+}
 
-    DIR *dP = opendir(path);
-    if (!dP) {
-        perror("failed to open /proc");
-        return;
+/*
+ * collect_processes - Collect all running process IDs from /proc
+ * @dev: Pointer to Device structure to populate with process IDs
+ *
+ * Scans /proc directory for numeric entries (process IDs) and stores them
+ * as strings in the Device structure. Dynamically grows the process array
+ * as needed.
+ */
+void collect_processes(Device *dev) {
+  DIR *d = opendir("/proc");
+  if (!d)
+    return;
+
+  struct dirent *e;
+  size_t cap = 8;
+  dev->procs = malloc(sizeof(char *) * cap);
+
+  while ((e = readdir(d))) {
+    if (!is_numeric(e->d_name))
+      continue;
+
+    if (dev->procs_count == cap) {
+      cap *= 2;
+      char **np = realloc(dev->procs, sizeof(char *) * cap);
+      if (!np)
+        break;
+      dev->procs = np;
     }
 
-    char **pid_list = (char**)malloc(sizeof(char*) * pid_cap);
-    if (!pid_list) {
-        perror("malloc failed");
-        closedir(dP);
-        return;
-    }
+    dev->procs[dev->procs_count++] = strdup(e->d_name);
+  }
 
-    while ((entry = readdir(dP)) != NULL) {
-        if (atoi(entry->d_name) == 0)
-            continue;
-
-        if (pid_count == pid_cap) {
-            pid_cap *= 2;
-            char **tmp = (char**)realloc(pid_list, sizeof(char*) * pid_cap);
-            if (!tmp) {
-				free(pid_list);
-                perror("realloc failed");
-                break;
-            }
-            pid_list = tmp;
-        }
-
-        size_t len = strlen(entry->d_name) + 1;
-        pid_list[pid_count] = (char*)malloc(len);
-        if (!pid_list[pid_count]) {
-            perror("malloc failed");
-            break;
-        }
-
-        memcpy(pid_list[pid_count], entry->d_name, len);
-        pid_count++;
-    }
-
-    closedir(dP);
-
-    size_t valid_count = 0;
-    device->procs = (char**)malloc(sizeof(char*) * pid_count);
-    if (!device->procs) {
-        perror("malloc failed");
-    }
-
-    for (size_t i = 0; i < pid_count; i++) {
-        char sub_path[64];
-
-        snprintf(sub_path, sizeof(sub_path), "/proc/%s", pid_list[i]);
-
-        DIR *sdP = opendir(sub_path);
-        if (!sdP)
-            continue;
-
-        closedir(sdP);
-
-        device->procs[valid_count++] = pid_list[i];
-    }
-	device->procs_count = valid_count;
+  closedir(d);
 }
 
+/*
+ * agent_device_read - Read device information including OS version, uptime, and
+ * processes
+ * @out: Pointer to AgentDevice structure to populate
+ *
+ * Reads OS version from /proc/version, uptime from /proc/uptime, and collects
+ * all running process IDs from /proc directory.
+ *
+ * Return: AGENT_OK on success, AGENT_ERR_INVALID if out is NULL,
+ *         AGENT_ERR_IO if required files cannot be opened
+ */
+AgentResult agent_device_read(AgentDevice *out) {
+  if (!out)
+    return AGENT_ERR_INVALID;
 
-void
-device_data(Device *device) 
-{
+  FILE *u = fopen("/proc/uptime", "r");
+  FILE *v = fopen("/proc/version", "r");
+  if (!u || !v) {
+    if (u)
+      fclose(u);
+    if (v)
+      fclose(v);
+    return AGENT_ERR_IO;
+  }
 
-	const char *uptime_path = "/proc/uptime";
-	const char *os_version_path = "/proc/version";
+  fgets(out->data.uptime, sizeof(out->data.uptime), u);
+  fgets(out->data.os_version, sizeof(out->data.os_version), v);
 
-	FILE *uptime_file = fopen(uptime_path, "r");
-	if (!uptime_file)
-		return;
+  fclose(u);
+  fclose(v);
 
-	FILE *os_version_file = fopen(os_version_path, "r");
-	if (!os_version_file)
-		return;
-
-
-
-	char os_version_content[MAXC_CHAR]	= "";
-	char uptime_content[MAXC_CHAR]		= "";
-
-	fgets(os_version_content, MAXC_CHAR, os_version_file);
-	fgets(uptime_content,MAXC_CHAR, uptime_file); 
-
-	memcpy(device->uptime, uptime_content, sizeof(uptime_content));
-	memcpy(device->os_version, os_version_content ,sizeof(os_version_content));
-
-	fclose(uptime_file);
-	fclose(os_version_file);
-
-
-	get_processes(device);
+  collect_processes(&out->data);
+  return AGENT_OK;
 }
 
-int
-terminate_process(int pid)
-{
-	pid_t p = pid ;
-
-	if (kill(p, SIGTERM) == -1)
-	{
-		return 1;
-	}
-	return 0;
-
+/*
+ * agent_device_destroy - Free an AgentDevice structure and all process data
+ * @d: Pointer to AgentDevice to free
+ *
+ * Frees all dynamically allocated process ID strings and the process array.
+ */
+void agent_device_destroy(AgentDevice *d) {
+  if (!d)
+    return;
+  for (size_t i = 0; i < d->data.procs_count; ++i)
+    free(d->data.procs[i]);
+  free(d->data.procs);
+  free(d);
 }
 
+/*
+ * agent_process_kill - Send a signal to a process
+ * @pid: Process ID to signal
+ * @signal: Signal number to send (e.g., SIGTERM, SIGKILL)
+ *
+ * Wrapper around kill(2) system call with error handling.
+ *
+ * Return: AGENT_OK on success,
+ *         AGENT_ERR_INVALID if pid is invalid or process not found,
+ *         AGENT_ERR_PERM if permission denied,
+ *         AGENT_ERR_IO for other errors
+ */
+AgentResult agent_process_kill(pid_t pid, int signal) {
+  if (pid <= 0)
+    return AGENT_ERR_INVALID;
+
+  if (kill(pid, signal) == -1) {
+    if (errno == EPERM)
+      return AGENT_ERR_PERM;
+    if (errno == ESRCH)
+      return AGENT_ERR_INVALID;
+    return AGENT_ERR_IO;
+  }
+  return AGENT_OK;
+}
+
+/*
+ * main - Demonstration program for agent resource monitoring
+ *
+ * Creates instances of all agent types, reads system information,
+ * and prints formatted output showing CPU, RAM, disk, and device data.
+ *
+ * Return: 0 on success
+ */
+int main(void) {
+  AgentCpu *cpu = agent_cpu_create();
+  agent_cpu_read(cpu);
+
+  printf("CPU\n");
+  printf("  Vendor    : %s\n", cpu->data.vendor);
+  printf("  Model     : %s\n", cpu->data.model);
+  printf("  Frequency : %s MHz\n", cpu->data.frequency);
+  printf("  Cores     : %s\n\n", cpu->data.cores);
+
+  AgentRam *ram = agent_ram_create();
+  agent_ram_read(ram);
+
+  printf("RAM\n");
+  printf("  Total : %s kB\n", ram->data.total);
+  printf("  Free  : %s kB\n\n", ram->data.free);
+
+  AgentDisk *disk = agent_disk_create();
+  agent_disk_read(disk);
+
+  printf("DISK PARTITIONS\n");
+  for (size_t i = 0; i < disk->data.count; ++i) {
+    Partition *p = &disk->data.parts[i];
+    printf("  %s  (major=%lu minor=%lu blocks=%lu)\n", p->name, p->major,
+           p->minor, p->blocks);
+  }
+  printf("\n");
+
+  AgentDevice *dev = agent_device_create();
+  agent_device_read(dev);
+
+  printf("DEVICE\n");
+  printf("  OS Version : %s", dev->data.os_version);
+  printf("  Uptime     : %s", dev->data.uptime);
+
+  printf("  Processes  : %zu\n", dev->data.procs_count);
+  for (size_t i = 0; i < dev->data.procs_count && i < 10; ++i) {
+    printf("    PID %s\n", dev->data.procs[i]);
+  }
+
+  agent_cpu_destroy(cpu);
+  agent_ram_destroy(ram);
+  agent_disk_destroy(disk);
+  agent_device_destroy(dev);
+
+  return 0;
+}
