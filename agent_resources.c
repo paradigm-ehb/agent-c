@@ -408,3 +408,5 @@ int agent_process_kill(pid_t pid, int signal) {
   }
   return AGENT_OK;
 }
+
+char *agent_ram_get_total(AgentRam *a) { return a->data.total; }

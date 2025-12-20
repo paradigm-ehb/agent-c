@@ -37,4 +37,6 @@ int agent_device_read(struct AgentDevice *device);
 
 int agent_process_kill(int pid, int signal);
 
+char *agent_ram_get_total(AgentRam *a);
+
 #endif
