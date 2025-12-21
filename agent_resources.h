@@ -49,6 +49,7 @@ char *agent_ram_get_total(AgentRam *a);
 char *agent_ram_get_free(AgentRam *a);
 
 size_t agent_disk_get_count(AgentDisk *a);
+char *agent_disk_get_partitions(AgentDisk *a);
 
 char *agent_device_get_os_version(AgentDevice *d);
 char *agent_device_get_uptime(AgentDevice *d);

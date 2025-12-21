@@ -84,6 +84,34 @@ struct AgentDevice {
   Device data;
 };
 
+/**
+ * Getters for data models to retreive in CGO
+ *
+ * */
+char *agent_cpu_get_vendor(AgentCpu *a) { return a->data.vendor; }
+char *agent_cpu_get_model(AgentCpu *a) { return a->data.model; }
+char *agent_cpu_get_frequency(AgentCpu *a) { return a->data.frequency; }
+char *agent_cpu_get_cores(AgentCpu *a) { return a->data.cores; }
+
+char *agent_ram_get_total(AgentRam *a) { return a->data.total; }
+char *agent_ram_get_free(AgentRam *a) { return a->data.free; }
+
+char *agent_disk_get_partitions(AgentDisk *a) { return a->data.parts->name; }
+size_t agent_disk_get_count(AgentDisk *a) { return a->data.count; }
+
+uint64_t agent_partition_get_major(Partition *p) { return p->major; }
+uint64_t agent_partition_get_minor(Partition *p) { return p->minor; }
+uint64_t agent_partition_get_blocks(Partition *p) { return p->blocks; }
+char *agent_partition_get_name(Partition *p) { return p->name; }
+
+char *agent_device_get_os_version(AgentDevice *d) { return d->data.os_version; }
+char *agent_device_get_uptime(AgentDevice *d) { return d->data.uptime; }
+char **agent_device_get_procs(AgentDevice *d) { return d->data.procs; }
+size_t agent_device_get_procs_count(AgentDevice *d) {
+
+  return d->data.procs_count;
+}
+
 /*
  * disk_push_partition - Add a partition to the disk structure
  * @d: Pointer to the Disk structure
@@ -134,7 +162,7 @@ AgentCpu *agent_cpu_create(void) { return calloc(1, sizeof(AgentCpu)); }
  * Return: AGENT_OK on success, AGENT_ERR_INVALID if out is NULL,
  *         AGENT_ERR_IO if /proc/cpuinfo cannot be opened
  */
-int agent_cpu_read(AgentCpu *out) {
+int agent_cpu_read_arm64(AgentCpu *out) {
   if (!out)
     return AGENT_ERR_INVALID;
 
@@ -165,6 +193,28 @@ int agent_cpu_read(AgentCpu *out) {
   }
 
   fclose(f);
+  return AGENT_OK;
+}
+
+int agent_cpu_read_amd64(AgentCpu *out) {
+
+  if (!out)
+    return AGENT_ERR_INVALID;
+
+  // Check for all available cores on the CPU
+  FILE *dP = opendir("/sys/devices/system/cpu");
+
+  return AGENT_OK;
+}
+
+/**
+ * get a read of the enabled cpu cores to get a view of the folder structure
+ * before starting to read every single of of them
+ *
+ * */
+int agent_cpu_read_enabled_cores(AgentCpu *out) {
+
+  // TODO(nasr): read all enabled processes on linux
   return AGENT_OK;
 }
 
@@ -333,6 +383,11 @@ void collect_processes(Device *dev) {
   closedir(d);
 }
 
+void collect_processes_stats(char *pid) {
+
+  // TODO(nasr): get the stats on an individual process
+}
+
 /*
  * agent_device_read - Read device information including OS version, uptime, and
  * processes
@@ -407,28 +462,4 @@ int agent_process_kill(pid_t pid, int signal) {
     return AGENT_ERR_IO;
   }
   return AGENT_OK;
-}
-
-char *agent_cpu_get_vendor(AgentCpu *a) { return a->data.vendor; }
-char *agent_cpu_get_model(AgentCpu *a) { return a->data.model; }
-char *agent_cpu_get_frequency(AgentCpu *a) { return a->data.frequency; }
-char *agent_cpu_get_cores(AgentCpu *a) { return a->data.cores; }
-
-char *agent_ram_get_total(AgentRam *a) { return a->data.total; }
-char *agent_ram_get_free(AgentRam *a) { return a->data.free; }
-
-Partition *agent_disk_get_partitions(AgentDisk *a) { return a->data.parts; }
-size_t agent_disk_get_count(AgentDisk *a) { return a->data.count; }
-
-uint64_t agent_partition_get_major(Partition *p) { return p->major; }
-uint64_t agent_partition_get_minor(Partition *p) { return p->minor; }
-uint64_t agent_partition_get_blocks(Partition *p) { return p->blocks; }
-char *agent_partition_get_name(Partition *p) { return p->name; }
-
-char *agent_device_get_os_version(AgentDevice *d) { return d->data.os_version; }
-char *agent_device_get_uptime(AgentDevice *d) { return d->data.uptime; }
-char **agent_device_get_procs(AgentDevice *d) { return d->data.procs; }
-size_t agent_device_get_procs_count(AgentDevice *d) {
-
-  return d->data.procs_count;
 }
