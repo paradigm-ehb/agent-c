@@ -12,6 +12,7 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -20,6 +21,12 @@
 
 #define MAXC_CHAR 256
 
+enum {
+  BUFFER_SIZE_SMALL = 128,
+  BUFFER_SIZE_DEFAULT = 256,
+  BUFFER_SIZE_LARGE = 512,
+  PATH_MAX_LEN = 4096 // Standard for Linux paths
+};
 /*
  * Represents a disk partition with major/minor device numbers and block count.
  */
@@ -255,16 +262,38 @@ int agent_cpu_get_enabled_cores_arm64(void) {
  * call
  *
  * */
-int agent_cpu_read_enabled_cores(AgentCpu *out, int enabled_cpu_count) {
-
-  struct dirent *e;
+int agent_cpu_read_enabled_core_cpu_frequency(AgentCpu *out,
+                                              int enabled_cpu_count) {
   if (!out)
     return AGENT_ERR_INVALID;
 
-  FILE *fP = fopen("/sys/devices/system/cpu/enabled", "r");
-  while ((e = readdir(fP))) {
-    printf("%s", e->d_name);
+  char curr_freq[MAXC_CHAR];
+  char path[128];
+
+  snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpu%d/cpuinfo_cur_freq",
+           enabled_cpu_count);
+
+  FILE *fp = fopen(path, "r");
+  if (!fgets(curr_freq, sizeof(curr_freq), fp)) {
+    return AGENT_ERR_PARSE;
   }
+
+  size_t len = sizeof(curr_freq) / sizeof(char);
+  memcpy(out->data.frequency, curr_freq, len);
+  out->data.frequency[len] = '\0';
+  // AGAIN!!! DONT FORGET TO NULL TERMINATE STRINGS
+
+  fclose(fp);
+
+  return AGENT_OK;
+}
+// TODO(nasr): i was doing something with directories i forgot what
+
+// TODO(nasr): read the binary /proc/device-tree/model
+// it contains the device model + cpu model
+int agent_cpu_read_cpu_model_name_arm64(AgentCpu *out) {
+
+  printf("%s", out->data.frequency);
 
   return AGENT_OK;
 }
@@ -274,9 +303,7 @@ int agent_cpu_read_arm64(AgentCpu *out) {
   if (!out)
     return AGENT_ERR_INVALID;
 
-  // Check for all available cores on the CPU
-  DIR *dP = opendir("/sys/devices/system/cpu");
-
+  // TODO(nasr): gather all information arm
   return AGENT_OK;
 }
 
@@ -445,16 +472,19 @@ void collect_processes(Device *dev) {
   closedir(d);
 }
 
-int collect_processes_stats(char *pid, Proces *a) {
+int collect_processes_stats(char *pid, Proces *out) {
 
-  FILE *fp = fopen("pid", "r");
+  FILE *fp = fopen(pid, "r");
 
   char buf[MAXC_CHAR];
   fgets(buf, sizeof(buf), fp);
 
-  while (fgets(buf, sizeof(buf), fp)) {
-    printf("buf %s", buf);
-  }
+  if (!fgets(buf, sizeof(buf), fp))
+    return AGENT_ERR_PARSE;
+
+  // TODO(nasr): parse buffer to correct stuff
+  // TODO(nasr): fix the length
+  memcpy(out->pid, buf, 256);
 
   fclose(fp);
 
