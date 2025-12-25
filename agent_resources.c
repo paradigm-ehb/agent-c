@@ -36,7 +36,7 @@
  */
 
 /**
- * replacing malloc/eree with arena allocaters
+ * replacing malloc/free with arena allocaters
  *
  * */
 
@@ -56,12 +56,16 @@ arena_create(u64 capacity);
 // make it a void pointer to allow implicit conversion
 void
 arena_destroy(mem_arena *arena);
+
 void *
 arena_push(mem_arena *arena, u64 size, b32 non_zero);
+
 void
 arena_pop(mem_arena *arena, u64 size);
+
 void
 arena_pop_to(mem_arena *arena, u64 pos);
+
 void
 arena_clear(mem_arena *arena);
 
@@ -252,18 +256,38 @@ cpu_read_enabled_core_cpu_frequency(Cpu *out, int enabled_cpu_count)
 int
 cpu_read_cpu_model_name_arm64(Cpu *out)
 {
-  int of = open("/proc/device-tree/model", O_RDONLY);
-
-  u8 buffer[BUFFER_SIZE_DEFAULT];
-  size_t s = sizeof(buffer);
-  ssize_t rf = read(of, buffer, s);
-
-  if (rf <= 0)
+  FILE *of = fopen("/proc/device-tree/model", "rb");
+  if (!of)
   {
-    printf("yay warning gone grr");
+    return ERR_IO;
   }
 
-  printf("%s", out->frequency);
+  u8 buffer[BUFFER_SIZE_DEFAULT];
+
+  /**
+	*
+	* note to self
+  *	fread returns the amount of bytes read
+	* fwrite returns the amount of bytes written
+	*
+  */
+
+  size_t n = fread(buffer, 1, sizeof(buffer), of);
+  if (n == 0)
+  {
+    return ERR_IO;
+  }
+
+  size_t len = 0;
+  while (len < n && buffer[len] != 0)
+  {
+    ++len;
+  }
+
+  memcpy(out->model, buffer, len);
+  out->model[len] = '\0';
+
+  fclose(of);
 
   return OK;
 }
@@ -322,7 +346,8 @@ cpu_read_arm64(Cpu *out)
     return ERR_INVALID;
   }
 
-  // TODO(nasr): gather all information arm
+  cpu_read_cpu_model_name_arm64(out);
+
   return OK;
 }
 
@@ -376,10 +401,36 @@ cpu_read_amd64(Cpu *out)
 int
 cpu_read(Cpu *out)
 {
-  // TODO(nasr): C macro check for architecture and call appropriate function
-  printf("%s", out->model);
-
   return OK;
+
+  if (!out)
+  {
+    return ERR_INVALID;
+  }
+
+#if defined(__arm__) || defined(__aarch64__)
+  if (cpu_read_arm64(out) != OK)
+  {
+    /**
+		 * Debugging!!
+		 *
+		 * */
+    assert(0);
+  }
+
+#elif defined(__i386__) || defined(__x86_64__)
+  if (cpu_read_amd64(out) != OK)
+  {
+    /**
+		 * Debugging!!
+		 *
+		 * */
+    assert(0);
+  }
+
+#else
+#error "Unsupported architecture"
+#endif
 }
 
 /*
@@ -429,11 +480,11 @@ ram_read(Ram *out)
 
     size_t len = strcspn(val, " k\n");
 
-    if (!strncmp(buf, "MemTotal", 8))
+    if (!strncmp(buf, "MemTotal", len))
     {
       memcpy(out->total, val, len);
     }
-    else if (!strncmp(buf, "MemFree", 7))
+    else if (!strncmp(buf, "MemFree", len))
     {
       memcpy(out->free, val, len);
     }
@@ -688,24 +739,28 @@ device_up_time(Device *out)
 {
   if (!out)
   {
-    return ERR_IO;
+    return ERR_INVALID;
   }
 
-  FILE *uptime = fopen("/proc/uptime", "r");
-  if (!uptime)
+  FILE *f = fopen("/proc/uptime", "r");
+  if (!f)
   {
-    if (uptime)
-    {
-      fclose(uptime);
-    }
-
     return ERR_IO;
   }
 
-  fgets(out->uptime, sizeof(out->uptime), uptime);
+  i64 s;
+  int result = fscanf(f, "%lld", &s);
+  fclose(f);
 
-  fclose(uptime);
+  if (result != 1)
+  {
+    return ERR_IO;
+  }
 
+  i64 day = s / 86400;
+  i64 hour = s % 86400 / 3600;
+  i64 min = s % 3600 / 60;
+  sprintf(out->uptime, "%lldd %lldh %lldm", day, hour, min);
   return OK;
 }
 
@@ -728,7 +783,7 @@ device_read(Device *out)
     return ERR_INVALID;
   }
 
-  FILE *version = fopen("/proc/version", "r");
+  FILE *version = fopen("/etc/os-release", "r");
   if (!version)
   {
     if (version)
@@ -738,9 +793,31 @@ device_read(Device *out)
     return ERR_IO;
   }
 
-  fgets(out->os_version, sizeof(out->os_version), version);
+  char buffer[BUFFER_SIZE_DEFAULT];
+  while (fgets(buffer, sizeof(out->os_version), version))
+  {
+    if (!strncmp(buffer, "NAME=", 5))
+    {
+      char *start = strchr(buffer, '"');
+      if (start)
+      {
+        start++;
+        char *end = strchr(start, '"');
+        if (end)
+        {
+          i64 len = end - start;
+          if ((u64)len < sizeof(out->os_version))
+          {
+            memcpy(out->os_version, start, (u64)len);
+            out->os_version[len] = '\0';
+          }
+        }
+      }
+    }
+  }
 
   fclose(version);
+  device_up_time(out);
 
   return OK;
 }

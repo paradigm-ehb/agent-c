@@ -18,13 +18,21 @@ CompileFlags:
     - -Wcast-qual
     - -Wwrite-strings
     - -Wswitch-enum
-    - -Wformat=2
+    - -Wformat=0
     - -Wstrict-aliasing=2
-
     - -Werror=implicit-function-declaration
     - -Werror=implicit-int
     - -Werror=incompatible-pointer-types
     - -Werror=return-type
+    - -Wformat-security 
+    - -Wnull-dereference
+    - -Wmisleading-indentation
+
+    -	-Wunused
+    -	-Wuninitialized
+    -	-Werror
+    -	-Wdouble-promotion
+    -	-Wstrict-overflow=2
 
     - -D_POSIX_C_SOURCE=200809L
     - "-I/include"
