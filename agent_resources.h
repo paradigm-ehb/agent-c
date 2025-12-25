@@ -13,6 +13,13 @@
 #define ERR_PERM 3
 #define ERR_INVALID 4
 
+enum {
+  BUFFER_SIZE_SMALL = 128,
+  BUFFER_SIZE_DEFAULT = 256,
+  BUFFER_SIZE_LARGE = 512,
+  PATH_MAX_LEN = 4096
+};
+
 typedef uint64_t u64;
 typedef uint32_t u32;
 typedef uint16_t u16;
