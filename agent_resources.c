@@ -19,103 +19,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <sys/mman.h>
 
 /**
- * Error macro's
- *
- * */
-#define OK 0
-#define ERR_IO 1
-#define ERR_PARSE 2
-#define ERR_PERM 3
-#define ERR_INVALID 4
-
-/**
- * Helper macro's
- *
+ * Arena Helper macro's
  * */
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define ALIGN_UP_POW2(n, p) (((u64)(n) + ((u64)(p) - 1)) & (~((u64)(p) - 1)))
 
-enum
-{
-  BUFFER_SIZE_SMALL = 128,
-  BUFFER_SIZE_DEFAULT = 256,
-  BUFFER_SIZE_LARGE = 512,
-  PATH_MAX_LEN = 4096
-};
-
 /*
  * Represents a disk partition with major/minor device numbers and block count.
  */
-typedef struct
-{
-  u64 major;
-  u64 minor;
-  u64 blocks;
-  char *name;
-} Partition;
-
-/*
- * CPU information structure containing vendor, model, frequency, and core
- * count.
- */
-struct Cpu
-{
-  char vendor[BUFFER_SIZE_DEFAULT];
-  char model[BUFFER_SIZE_DEFAULT];
-  char frequency[BUFFER_SIZE_SMALL];
-  char cores[BUFFER_SIZE_SMALL];
-};
-
-/*
- * RAM information structure containing total and free memory.
- */
-struct Ram
-{
-  char total[BUFFER_SIZE_DEFAULT];
-  char free[BUFFER_SIZE_DEFAULT];
-};
-
-/*
- * Dynamic array of disk partitions with capacity tracking.
- */
-struct Disk
-{
-  Partition *parts;
-  size_t count;
-  size_t cap;
-};
-
-/*
- * Device information including OS version, uptime, and running processes.
- */
-struct Device
-{
-  char os_version[BUFFER_SIZE_DEFAULT];
-  char uptime[BUFFER_SIZE_DEFAULT];
-  char **procs;
-  size_t procs_count;
-};
-
-struct Proces
-{
-  char *pid;
-  char *command;
-  char *state;
-  char *ppid; // parent process id
-  char *pgrp; // process group id
-  char *session;
-  char *tty_nr;
-  char *tpgid;
-  char *utime; // user cpu time
-  char *num_threads; // thread count
-};
 
 /**
  * replacing malloc/eree with arena allocaters
@@ -150,7 +68,8 @@ arena_clear(mem_arena *arena);
 mem_arena *
 arena_create(u64 capacity)
 {
-  mem_arena *arena = mmap(0, capacity, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  mem_arena *arena = mmap(0, capacity, PROT_READ | PROT_WRITE | PROT_EXEC,
+    MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   if (arena == MAP_FAILED)
   {
     assert(0);
@@ -214,99 +133,7 @@ arena_clear(mem_arena *arena)
 #define PUSH_STRUCT(arena, T) (T *)arena_push((arena), sizeof(T), 0)
 #define PUSH_STRUCT_NZ(arena, T) (T *)arena_push((arena), sizeof(T), 1)
 #define PUSH_ARRAY(arena, T, n) (T *)arena_push((arena), sizeof(T) * (n), 0)
-#define PUSH_ARRAY_NZ(arena, T, n) \
-  (T *)arena_push((arena), sizeof(T) * (n), 1)
-
-/**
- * Getters for data models to retreive in CGO
- *
- * */
-char *
-cpu_get_vendor(Cpu *a)
-{
-  return a->vendor;
-}
-char *
-cpu_get_model(Cpu *a)
-{
-  return a->model;
-}
-char *
-cpu_get_frequency(Cpu *a)
-{
-  return a->frequency;
-}
-char *
-cpu_get_cores(Cpu *a)
-{
-  return a->cores;
-}
-
-char *
-ram_get_total(Ram *a)
-{
-  return a->total;
-}
-char *
-ram_get_free(Ram *a)
-{
-  return a->free;
-}
-
-char *
-disk_get_partitions(Disk *a)
-{
-  return a->parts->name;
-}
-size_t
-disk_get_count(Disk *a)
-{
-  return a->count;
-}
-
-u64
-partition_get_major(Partition *p)
-{
-  return p->major;
-}
-u64
-partition_get_minor(Partition *p)
-{
-  return p->minor;
-}
-u64
-partition_get_blocks(Partition *p)
-{
-  return p->blocks;
-}
-char *
-partition_get_name(Partition *p)
-{
-  return p->name;
-}
-
-char *
-device_get_os_version(Device *d)
-{
-  return d->os_version;
-}
-char *
-device_get_uptime(Device *d)
-{
-  return d->uptime;
-}
-// TODO(nasr): fix the return type
-// @return returns a list of processes
-char **
-device_get_procs(Device *d)
-{
-  return d->procs;
-}
-size_t
-device_get_procs_count(Device *d)
-{
-  return d->procs_count;
-}
+#define PUSH_ARRAY_NZ(arena, T, n) (T *)arena_push((arena), sizeof(T) * (n), 1)
 
 /*
  * disk_push_partition - Add a partition to the disk structure
@@ -317,29 +144,28 @@ device_get_procs_count(Device *d)
  * full. If realloc fails, the partition is not added and function returns
  * silently.
  */
+
 void
-disk_push_partition(Disk *d, Partition p, mem_arena *m)
+disk_push_partition(Disk *d, Partition p, mem_arena *arena)
 {
-  if (d->count == d->cap)
+  if (d->count == d->capacity)
   {
-    size_t ncap = d->cap ? d->cap * 2 : 8;
+    size_t new_cap = d->capacity ? d->capacity * 2 : 8;
 
-    Partition *np = PUSH_ARRAY(m, Partition, ncap);
+    Partition *np = PUSH_ARRAY_NZ(arena, Partition, new_cap);
     if (!np)
-    {
       return;
-    }
 
-    if (d->parts && d->count > 0)
+    if (d->partitions && d->count > 0)
     {
-      memcpy(np, d->parts, d->count * sizeof(Partition));
+      memcpy(np, d->partitions, d->count * sizeof(Partition));
     }
 
-    d->parts = np;
-    d->cap = ncap;
+    d->partitions = np;
+    d->capacity = new_cap;
   }
 
-  d->parts[d->count++] = p;
+  d->partitions[d->count++] = p;
 }
 
 /*
@@ -431,6 +257,11 @@ cpu_read_cpu_model_name_arm64(Cpu *out)
   u8 buffer[BUFFER_SIZE_DEFAULT];
   size_t s = sizeof(buffer);
   ssize_t rf = read(of, buffer, s);
+
+  if (rf <= 0)
+  {
+    printf("yay warning gone grr");
+  }
 
   printf("%s", out->frequency);
 
@@ -524,15 +355,15 @@ cpu_read_amd64(Cpu *out)
     {
       memcpy(out->vendor, val, len);
     }
-    else if (!strncmp(buf, "model name", 10))
+    if (!strncmp(buf, "model name", 10))
     {
       memcpy(out->model, val, len);
     }
-    else if (!strncmp(buf, "cpu MHz", 7))
+    if (!strncmp(buf, "cpu MHz", 7))
     {
       memcpy(out->frequency, val, len);
     }
-    else if (!strncmp(buf, "cpu cores", 9))
+    if (!strncmp(buf, "cpu cores", 9))
     {
       memcpy(out->cores, val, len);
     }
@@ -634,21 +465,20 @@ disk_create(mem_arena *m)
  * Return: OK on success, AGENT_ERR_INVALID if out is NULL,
  *         ERR_IO if /proc/partitions cannot be opened
  */
+
 int
-disk_read(Disk *out, mem_arena *m)
+disk_read(Disk *out, mem_arena *arena)
 {
   if (!out)
-  {
     return ERR_INVALID;
-  }
 
   FILE *f = fopen("/proc/partitions", "r");
   if (!f)
-  {
     return ERR_IO;
-  }
 
   char buf[BUFFER_SIZE_DEFAULT];
+
+  fgets(buf, sizeof(buf), f);
   fgets(buf, sizeof(buf), f);
 
   while (fgets(buf, sizeof(buf), f))
@@ -657,22 +487,23 @@ disk_read(Disk *out, mem_arena *m)
     char name[BUFFER_SIZE_DEFAULT];
 
     if (sscanf(buf, "%lu %lu %lu %255s", &p.major, &p.minor, &p.blocks, name) != 4)
+    {
       continue;
+    }
 
-    // Allocate name from arena instead of strdup
-    size_t name_len = strlen(name) + 1;
-    p.name = PUSH_ARRAY(m, char, name_len);
-    if (!p.name)
-      continue;
-    memcpy(p.name, name, name_len);
+    size_t len = strlen(name);
+    if (len >= sizeof(p.name))
+      len = sizeof(p.name) - 1;
 
-    disk_push_partition(out, p, m); // Pass arena
+    memcpy(p.name, name, len);
+    p.name[len] = 0;
+
+    disk_push_partition(out, p, arena);
   }
 
   fclose(f);
   return OK;
 }
-
 /*
  * device_create - Allocate and initialize a new Device structure
  *
@@ -692,21 +523,26 @@ device_create(mem_arena *m)
  * as strings in the Device structure. Dynamically grows the process array
  * as needed.
  */
-void
-collect_processes(Device *dev, mem_arena *m)
+
+int
+process_list_collect(Process_List *list, mem_arena *arena)
 {
   DIR *d = opendir("/proc");
   if (!d)
-    return;
+    return ERR_IO;
 
-  struct dirent *e = NULL;
-  size_t cap = 8;
+  struct dirent *e = 0;
 
-  dev->procs = PUSH_ARRAY(m, char *, cap);
-  if (!dev->procs)
+  if (!list->items)
   {
-    closedir(d);
-    return;
+    list->capacity = 8;
+    list->count = 0;
+    list->items = PUSH_ARRAY_NZ(arena, Process, list->capacity);
+    if (!list->items)
+    {
+      closedir(d);
+      return ERR_IO;
+    }
   }
 
   while ((e = readdir(d)))
@@ -714,49 +550,134 @@ collect_processes(Device *dev, mem_arena *m)
     if (!is_numeric(e->d_name))
       continue;
 
-    if (dev->procs_count == cap)
+    if (list->count == list->capacity)
     {
-      size_t new_cap = cap * 2;
-      char **np = PUSH_ARRAY(m, char *, new_cap);
+      size_t new_cap = list->capacity * 2;
+      Process *np = PUSH_ARRAY_NZ(arena, Process, new_cap);
       if (!np)
         break;
 
-      memcpy(np, dev->procs, sizeof(char *) * cap);
-      dev->procs = np;
-      cap = new_cap;
+      memcpy(np, list->items, sizeof(Process) * list->capacity);
+      list->items = np;
+      list->capacity = new_cap;
     }
 
-    size_t name_len = strlen(e->d_name) + 1;
-    char *name = PUSH_ARRAY(m, char, name_len);
-    if (!name)
-      break;
+    Process *p = &list->items[list->count++];
 
-    memcpy(name, e->d_name, name_len);
-    dev->procs[dev->procs_count++] = name;
+    p->pid = atoi(e->d_name);
+    p->state = PROCESS_UNDEFINED;
+    p->utime = 0;
+    p->stime = 0;
+    p->num_threads = 0;
+    p->name[0] = 0;
   }
 
   closedir(d);
+  return OK;
 }
 
+/**
+ *
+struct Proces {
+  char *pid;
+        char *name;
+  char *state;
+  char *utime;
+  char *num_threads;
+};
+
+*/
+
 int
-collect_processes_stats(char *pid, Proces *out, mem_arena *m)
+process_read(i32 pid, Process *out)
 {
   char path[PATH_MAX_LEN];
-  snprintf(path, sizeof(path), "/proc/%s/stat", pid);
+  snprintf(path, sizeof(path), "/proc/%d/status", pid);
 
   FILE *fp = fopen(path, "r");
   if (!fp)
     return ERR_IO;
 
   char buf[BUFFER_SIZE_LARGE];
-  if (!fgets(buf, sizeof(buf), fp))
-  {
-    fclose(fp);
-    return ERR_PARSE;
-  }
 
-  out->pid = PUSH_ARRAY(m, char, strlen(pid) + 1);
-  strcpy(out->pid, pid);
+  out->pid = pid;
+  out->state = PROCESS_UNDEFINED;
+  out->utime = 0;
+  out->stime = 0;
+  out->num_threads = 0;
+  out->name[0] = 0;
+
+  while (fgets(buf, sizeof(buf), fp))
+  {
+    char *colon = strchr(buf, ':');
+    if (!colon)
+      continue;
+
+    char *val = colon + 1;
+    while (*val == ' ' || *val == '\t')
+      ++val;
+
+    size_t len = strcspn(val, "\n");
+
+    if (!strncmp(buf, "Name", 4))
+    {
+      if (len >= sizeof(out->name))
+        len = sizeof(out->name) - 1;
+
+      memcpy(out->name, val, len);
+      out->name[len] = 0;
+    }
+    else if (!strncmp(buf, "State", 5))
+    {
+      switch (val[0])
+      {
+        case 'R':
+        {
+          out->state = PROCESS_RUNNING;
+          break;
+        }
+        case 'S':
+        {
+          out->state = PROCESS_SLEEPING;
+          break;
+        }
+        case 'D':
+        {
+          out->state = PROCESS_DISK_SLEEP;
+          break;
+        }
+        case 'T':
+        {
+          out->state = PROCESS_STOPPED;
+          break;
+        }
+        case 't':
+        {
+          out->state = PROCESS_TRACING_STOPPED;
+          break;
+        }
+        case 'Z':
+        {
+          out->state = PROCESS_ZOMBIE;
+          break;
+        }
+        case 'X':
+        {
+          out->state = PROCESS_DEAD;
+          break;
+        }
+        default:
+        {
+          out->state = PROCESS_UNDEFINED;
+          break;
+        }
+      }
+    }
+    else if (!strncmp(buf, "Threads", 7))
+    {
+      out->num_threads = (u32)strtoul(val, 0, 10);
+    }
+  }
 
   fclose(fp);
   return OK;

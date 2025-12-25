@@ -9,51 +9,53 @@ TabWidth: 2
 UseTab: Never
 ContinuationIndentWidth: 2
 
-IndentCaseLabels: false
-IndentGotoLabels: false
+IndentCaseLabels: true
+IndentGotoLabels: true
 IndentPPDirectives: None
 IndentExternBlock: NoIndent
 
 # -------------------------------------------------------------------
 # Line breaking
 # -------------------------------------------------------------------
-ColumnLimit: 0                       
+ColumnLimit: 0
+
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowAllArgumentsOnNextLine: false
 
-AllowShortFunctionsOnASingleLine: None
+AllowShortFunctionsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
+AllowShortLoopsOnASingleLine:  false 
 AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
 
-# Return type on its own line
 AlwaysBreakAfterReturnType: All
-AlwaysBreakTemplateDeclarations: No
+AlwaysBreakTemplateDeclarations: No   # harmless for C
 
 BreakBeforeBinaryOperators: None
 
 # -------------------------------------------------------------------
-# Braces (Allman style, always explicit)
+# Braces (Allman style)
 # -------------------------------------------------------------------
 BreakBeforeBraces: Allman
 
 BraceWrapping:
-  AfterFunction: true
-  AfterControlStatement: true
-  AfterStruct: true
-  AfterEnum: true
-  AfterUnion: true
-  BeforeElse: true 
+  AfterCaseLabel: true
+  BeforeElse: true
+  BeforeCatch: true
   SplitEmptyFunction: true
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
+
+# NOTE:
+# AfterControlStatement / AfterFunction / AfterStruct / AfterEnum / AfterUnion
+# are IMPLIED by Allman and must NOT be redundantly specified.
 
 # -------------------------------------------------------------------
 # Spacing
 # -------------------------------------------------------------------
 SpaceBeforeParens: ControlStatements
 SpaceBeforeAssignmentOperators: true
-SpaceBeforeRangeBasedForLoopColon: true
+SpaceBeforeRangeBasedForLoopColon: true   # ignored in C, harmless
 
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
@@ -61,12 +63,11 @@ SpacesInAngles: false
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
 
-# Pointer style: type* name
-PointerAlignment: Right 
+PointerAlignment: Right
 DerivePointerAlignment: false
 
 # -------------------------------------------------------------------
-# Alignment (deliberately disabled)
+# Alignment (explicitly disabled)
 # -------------------------------------------------------------------
 AlignAfterOpenBracket: DontAlign
 AlignOperands: false

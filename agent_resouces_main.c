@@ -156,7 +156,7 @@ print_separator(const char *title)
    if (proc_count > 0)
    {
      print_separator("Process Stats Sample");
-     Proces *proc_stats = arena_push(arena, sizeof(Proces), 1);
+     Process *proc_stats = arena_push(arena, sizeof(Proces), 1);
      if (proc_stats)
      {
        char **procs = device_get_procs(device);
