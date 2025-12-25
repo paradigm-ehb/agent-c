@@ -762,6 +762,32 @@ collect_processes_stats(char *pid, Proces *out, mem_arena *m)
   return OK;
 }
 
+int
+device_up_time(Device *out)
+{
+  if (!out)
+  {
+    return ERR_IO;
+  }
+
+  FILE *uptime = fopen("/proc/uptime", "r");
+  if (!uptime)
+  {
+    if (uptime)
+    {
+      fclose(uptime);
+    }
+
+    return ERR_IO;
+  }
+
+  fgets(out->uptime, sizeof(out->uptime), uptime);
+
+  fclose(uptime);
+
+  return OK;
+}
+
 /*
  * device_read - Read device information including OS version, uptime, and
  * processes
@@ -781,26 +807,19 @@ device_read(Device *out)
     return ERR_INVALID;
   }
 
-  FILE *u = fopen("/proc/uptime", "r");
-  FILE *v = fopen("/proc/version", "r");
-  if (!u || !v)
+  FILE *version = fopen("/proc/version", "r");
+  if (!version)
   {
-    if (u)
+    if (version)
     {
-      fclose(u);
-    }
-    if (v)
-    {
-      fclose(v);
+      fclose(version);
     }
     return ERR_IO;
   }
 
-  fgets(out->uptime, sizeof(out->uptime), u);
-  fgets(out->os_version, sizeof(out->os_version), v);
+  fgets(out->os_version, sizeof(out->os_version), version);
 
-  fclose(u);
-  fclose(v);
+  fclose(version);
 
   return OK;
 }
