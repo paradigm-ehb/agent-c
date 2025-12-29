@@ -10,7 +10,7 @@ OUT_OBJ=$OUT_DIR/agent_resources.o
 OUT_LIB=$OUT_DIR/libagent_resources.a
 
 CFLAGS="
--std=c11
+-std=c99
 -Wall
 -Wextra
 -Wpedantic
@@ -25,13 +25,11 @@ CFLAGS="
 -Wformat-security 
 -Wnull-dereference
 -Wmisleading-indentation
-
 -Wunused
 -Wuninitialized
 -Werror
 -Wdouble-promotion
 -Wstrict-overflow=2
-
 -D_POSIX_C_SOURCE=200809L
 "
 

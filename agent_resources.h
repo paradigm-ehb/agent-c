@@ -108,6 +108,9 @@ struct Device {
 };
 
 mem_arena *arena_create(u64 capacity);
+/**
+ * TODO(nasr): add error handling for both the destroy and the clear
+ * */
 void arena_destroy(mem_arena *arena);
 void arena_clear(mem_arena *arena);
 
@@ -120,6 +123,9 @@ int cpu_read(Cpu *cpu);
 int ram_read(Ram *ram);
 int disk_read(Disk *disk, mem_arena *arena);
 int device_read(Device *device);
+
+// TODO(nasr): add a function that updates certain values incrementally
+// instead of neading to update the entire cpu struct
 
 int process_list_collect(Process_List *list, mem_arena *arena);
 
