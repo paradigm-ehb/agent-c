@@ -74,8 +74,3 @@ arena_clear(mem_arena *arena)
   arena_pop_to(arena, ARENA_BASE_POS);
 }
 
-#define PUSH_STRUCT(arena, T) (T *)arena_push((arena), sizeof(T), 0)
-#define PUSH_STRUCT_NZ(arena, T) (T *)arena_push((arena), sizeof(T), 1)
-#define PUSH_ARRAY(arena, T, n) (T *)arena_push((arena), sizeof(T) * (n), 0)
-#define PUSH_ARRAY_NZ(arena, T, n) (T *)arena_push((arena), sizeof(T) * (n), 1)
-
