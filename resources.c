@@ -599,7 +599,7 @@ process_read(i32 pid, Process *out)
       char state_char = 0;
       for (char *p = val; *p; ++p)
       {
-        if (*p >= 'A' && *p <= 'Z' || *p == 't')
+        if ((*p >= 'A' && *p <= 'Z') || *p == 't')
         {
           state_char = *p;
           break;
