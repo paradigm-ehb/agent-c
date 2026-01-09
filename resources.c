@@ -584,22 +584,22 @@ process_read(i32 pid, Process *out)
 
     size_t len = strcspn(val, "\n");
 
+    printf("lenght: %lu", len);
+
     if (!strncmp(buf, "Name:", 5))
     {
-      if (len >= sizeof(out->name))
-      {
-        len = sizeof(out->name) - 1;
-      }
 
       memcpy(out->name, val, len);
-      out->name[len] = 0;
+      printf("\nout name %s\n", out->name);
+      // out->name[len] = 0;
     }
+    printf("name: %s", out->name);
     if (!strncmp(buf, "State:", 6))
     {
       char state_char = 0;
       for (char *p = val; *p; ++p)
       {
-        if (*p >= 'A' && *p <= 'Z')
+        if (*p >= 'A' && *p <= 'Z' || *p == 't')
         {
           state_char = *p;
           break;

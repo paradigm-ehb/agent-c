@@ -24,12 +24,15 @@ int main()
         sizeof(Process),
         1);
 
+      printf("\nstate: %d\n", proc->state);
+
       i32 error = process_read(device->processes
       
       .items[proc_idx]
       .pid,
       proc);
 
+      printf("\nstate: %d\n", proc->state);
 
       if (error != OK)
       {

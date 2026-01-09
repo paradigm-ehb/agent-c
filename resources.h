@@ -124,6 +124,9 @@ int
 process_read(i32 pid, Process *out);
 
 int
+process_read2(i32 pid, Process *out);
+
+int
 process_kill(i32 pid, i32 signal);
 
 #endif /* RESOURCES_H */
