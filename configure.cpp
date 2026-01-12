@@ -1,4 +1,3 @@
-
 #include "arena.h"
 #include "base.h"
 #include "resources.h"
@@ -22,8 +21,29 @@ find_lxd_pkgm(mem_arena *arena)
 
   while (distro_unparsed[word_idx] != '\0')
   {
+    /* TODO:
+     *
+     * Convert character to lowercase using ASCII ordering.
+     *
+     * - Check whether the character is an uppercase letter.
+     * - Uppercase ASCII range: 'A' .. 'Z'.
+     * - If the character falls within this range:
+     *     - Convert it to lowercase by applying the ASCII offset.
+     * - Rationale:
+     *     - Lowercase letters appear after uppercase letters in ASCII.
+     *     - Case conversion can be done via direct numeric comparison,
+     *       without locale or library calls.
+     */
+    /*
+      Calculate the lower-case upper-case differnce 
+    */
+    i8 lwc_diff = 'A' - 'a';
     if (distro_unparsed[word_idx] != ' ')
     {
+      if (buffer[word_idx] >= 'a')
+      {
+        buffer[word_idx] += lwc_diff;
+      }
       buffer[word_idx] = distro_unparsed[word_idx];
     }
 
@@ -31,8 +51,6 @@ find_lxd_pkgm(mem_arena *arena)
   }
 
   buffer[word_idx] = '\0';
-
-#define DISTRO_ARCH
 
   arena_destroy(arena);
 

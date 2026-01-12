@@ -3,7 +3,6 @@
 
 #include <libalpm.h>
 
-
 /**
  * TODO(nasr): pacman impelmentation of package manager
  * */
@@ -79,13 +78,10 @@ run_transaction(libdnf5::Base *base, std::string package_name)
   return;
 }
 
-#elif defined (DISTRO_DEBIAN)
+#elif defined(DISTRO_DEBIAN)
 
 /**
  * TODO(nasr): apt impelmentation of package manager
  * */
 
-
-
 #endif
-

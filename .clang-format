@@ -55,7 +55,7 @@ BraceWrapping:
 # -------------------------------------------------------------------
 SpaceBeforeParens: ControlStatements
 SpaceBeforeAssignmentOperators: true
-SpaceBeforeRangeBasedForLoopColon: true   # ignored in C, harmless
+SpaceBeforeRangeBasedForLoopColon: true   # 
 
 SpacesInParentheses: false
 SpacesInSquareBrackets: false

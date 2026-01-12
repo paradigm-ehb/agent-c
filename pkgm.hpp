@@ -31,19 +31,35 @@ enum LinuxDistro
 
   DISTRO_COUNT
 
-
-};
-
-struct PackageManager
-{
-  char *name;
-  char *binary_path;
 };
 
 struct DistroStack
 {
-  PackageManager package_manager;
+  const char *name;
   LinuxDistro linux_distro;
+};
+
+internal const DistroStack distro_map[] = {
+  { "arch", DISTRO_ARCH_LINUX },
+  { "manjaro", DISTRO_MANJARO },
+  { "endeavouros", DISTRO_ENDEAVOUROS },
+  { "arco", DISTRO_ARCO },
+  { "garuda", DISTRO_GARUDA },
+
+  { "debian", DISTRO_DEBIAN },
+  { "ubuntu", DISTRO_UBUNTU },
+  { "mint", DISTRO_LINUX_MINT },
+  { "pop", DISTRO_POP_OS },
+
+  { "fedora", DISTRO_FEDORA },
+  { "rhel", DISTRO_RHEL },
+  { "centos", DISTRO_CENTOS_STREAM },
+  { "rocky", DISTRO_ROCKY },
+  { "alma", DISTRO_ALMA },
+
+  { "gentoo", DISTRO_GENTOO },
+  { "nixos", DISTRO_NIXOS },
+  { "opensuse", DISTRO_OPENSUSE },
 };
 
 internal LinuxDistro
