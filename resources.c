@@ -25,6 +25,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <sys/statfs.h>
 
 /*
  * disk_push_partition - Add a partition to the disk structure
@@ -39,24 +40,24 @@
 void
 disk_push_partition(Disk *d, Partition p, mem_arena *arena)
 {
-  if (d->count == d->capacity)
+  if (d->part_count == d->part_capacity)
   {
-    size_t new_cap = d->capacity ? d->capacity * 2 : 8;
+    size_t new_cap = d->part_capacity ? d->part_capacity * 2 : 8;
 
     Partition *np = PUSH_ARRAY_NZ(arena, Partition, new_cap);
     if (!np)
       return;
 
-    if (d->partitions && d->count > 0)
+    if (d->partitions && d->part_count > 0)
     {
-      memcpy(np, d->partitions, d->count * sizeof(Partition));
+      memcpy(np, d->partitions, d->part_count * sizeof(Partition));
     }
 
     d->partitions = np;
-    d->capacity = new_cap;
+    d->part_capacity = new_cap;
   }
 
-  d->partitions[d->count++] = p;
+  d->partitions[d->part_count++] = p;
 }
 
 /*
@@ -409,7 +410,15 @@ ram_read(Ram *out)
     return ERR_IO;
   }
 
-  char buf[BUFFER_SIZE_LARGE];
+  mem_arena *temp_arena = arena_create(KiB(8));
+
+  size_t total_len;
+  size_t free_len;
+
+  char *total_buffer;
+  char *free_buffer;
+
+  char buf[BUFFER_SIZE_SMALL];
   while (fgets(buf, sizeof(buf), f))
   {
     char *colon = strchr(buf, ':');
@@ -426,18 +435,23 @@ ram_read(Ram *out)
 
     if (!strncmp(buf, "MemTotal", 8))
     {
-      size_t len = strcspn(val, "k\n");
-      memcpy(out->total, val, len);
-      out->total[len] = '\0';
+      total_len = strcspn(val, "k\n");
+      total_buffer = PUSH_ARRAY(temp_arena, char, total_len);
+
+      memcpy(total_buffer, val, total_len);
     }
 
     if (!strncmp(buf, "MemFree", 7))
     {
-      size_t len = strcspn(val, "k\n");
-      memcpy(out->free, val, len);
-      out->total[len] = '\0';
+      free_len = strcspn(val, "k\n");
+      free_buffer = PUSH_ARRAY(temp_arena, char, free_len);
+
+      memcpy(free_buffer, val, free_len);
     }
   }
+
+  out->total = parse_u64(total_buffer, total_len);
+  out->free = parse_u64(free_buffer, free_len);
 
   fclose(f);
   return OK;
@@ -484,15 +498,17 @@ disk_read(Disk *out, mem_arena *arena)
 
   char buf[BUFFER_SIZE_DEFAULT];
 
-  fgets(buf, sizeof(buf), f);
-  fgets(buf, sizeof(buf), f);
-
   while (fgets(buf, sizeof(buf), f))
   {
     Partition p = { 0 };
     char name[BUFFER_SIZE_DEFAULT];
 
-    if (sscanf(buf, "%lu %lu %lu %255s", &p.major, &p.minor, &p.blocks, name) != 4)
+    if (sscanf(buf,
+          "%lu %lu %lu %255s",
+          &p.major,
+          &p.minor,
+          &p.blocks,
+          name) != 4)
     {
       continue;
     }
@@ -510,6 +526,31 @@ disk_read(Disk *out, mem_arena *arena)
   fclose(f);
   return OK;
 }
+
+int
+fs_usage(char *path, Disk *disk)
+{
+  struct statfs s;
+  if (statfs(path, &s) != 0)
+  {
+    return ERR_IO;
+  }
+
+  i64 block_size = s.f_bsize;
+
+  u64 blocks = (u64)s.f_blocks;
+  u64 bfree = (u64)s.f_bfree;
+  u64 bavail = (u64)s.f_bavail;
+  u64 bsize = (u64)block_size;
+
+  disk->disk_usage.total = blocks * bsize;
+  disk->disk_usage.free = bfree * bsize;
+  disk->disk_usage.available = bavail * bsize;
+  disk->disk_usage.used = (blocks - bfree) * bsize;
+
+  return OK;
+}
+
 /*
  * device_create - Allocate and initialize a new Device structure
  *

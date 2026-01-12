@@ -79,15 +79,26 @@ struct Cpu
 
 struct Ram
 {
-  char total[BUFFER_SIZE_DEFAULT];
-  char free[BUFFER_SIZE_DEFAULT];
+  u64 total;
+  u64 free;
+};
+
+struct DiskUsage
+{
+  u64 total;
+  u64 free;
+  u64 available;
+  u64 used;
 };
 
 struct Disk
 {
   Partition *partitions;
-  size_t count;
-  size_t capacity;
+
+  size_t part_count;
+  size_t part_capacity;
+
+  struct DiskUsage disk_usage;
 };
 
 struct Device
