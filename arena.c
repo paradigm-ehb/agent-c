@@ -73,4 +73,3 @@ arena_clear(mem_arena *arena)
 {
   arena_pop_to(arena, ARENA_BASE_POS);
 }
-

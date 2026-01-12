@@ -9,10 +9,3 @@
 #include "arena.h"
 #include "pkgm.hpp"
 #include "stdio.h"
-
-int
-main()
-{
-  mem_arena *arena = arena_create(KiB(16));
-  printf("distro name %s", find_lxd_pkgm(arena));
-}

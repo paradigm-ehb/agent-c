@@ -1,18 +1,18 @@
 #include "arena.h"
-#include "base.h"
 #include "resources.h"
 #include "pkgm.hpp"
 #include <string.h>
+#include "stdio.h"
 
 internal enum LinuxDistro
 find_lxd_pkgm(mem_arena *arena)
 {
-  Device *device = device_create((arena));
+  Device *device = device_create(arena);
   device_read(device);
   enum LinuxDistro lxd;
 
   i32 len = sizeof(device->os_version);
-  char distro_unparsed[len];
+  char *distro_unparsed = (char *)PUSH_ARRAY(arena, char, len);
 
   memcpy(distro_unparsed, device->os_version, len);
 
@@ -37,12 +37,12 @@ find_lxd_pkgm(mem_arena *arena)
     /*
       Calculate the lower-case upper-case differnce 
     */
-    i8 lwc_diff = 'A' - 'a';
+    i8 lwc_diff = 'a' - 'A';
     if (distro_unparsed[word_idx] != ' ')
     {
-      if (buffer[word_idx] >= 'a')
+      if (distro_unparsed[word_idx] < 'a')
       {
-        buffer[word_idx] += lwc_diff;
+        distro_unparsed[word_idx] += lwc_diff;
       }
       buffer[word_idx] = distro_unparsed[word_idx];
     }
@@ -52,7 +52,13 @@ find_lxd_pkgm(mem_arena *arena)
 
   buffer[word_idx] = '\0';
 
-  arena_destroy(arena);
+  return buffer;
+}
 
-  return lxd;
+int
+main()
+{
+  mem_arena *arena = arena_create(GiB(1));
+  printf("distro name %s", find_lxd_pkgm(arena));
+  arena_destroy(arena);
 }
