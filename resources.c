@@ -527,8 +527,14 @@ disk_read(Disk *out, mem_arena *arena)
   return OK;
 }
 
+FileSystem *
+fs_create(mem_arena *arena)
+{
+  return arena_push(arena, sizeof(FileSystem), 1);
+}
+
 int
-fs_usage(char *path, Disk *disk)
+fs_read(char *path, FileSystem *fs)
 {
   struct statfs s;
   if (statfs(path, &s) != 0)
@@ -543,10 +549,10 @@ fs_usage(char *path, Disk *disk)
   u64 bavail = (u64)s.f_bavail;
   u64 bsize = (u64)block_size;
 
-  disk->disk_usage.total = blocks * bsize;
-  disk->disk_usage.free = bfree * bsize;
-  disk->disk_usage.available = bavail * bsize;
-  disk->disk_usage.used = (blocks - bfree) * bsize;
+  fs->total = blocks * bsize;
+  fs->free = bfree * bsize;
+  fs->available = bavail * bsize;
+  fs->used = (blocks - bfree) * bsize;
 
   return OK;
 }

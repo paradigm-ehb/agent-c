@@ -12,6 +12,7 @@ typedef struct Cpu Cpu;
 typedef struct Ram Ram;
 typedef struct Disk Disk;
 typedef struct Device Device;
+typedef struct FileSystem FileSystem;
 
 typedef struct Partition Partition;
 typedef struct Process Process;
@@ -83,7 +84,7 @@ struct Ram
   u64 free;
 };
 
-struct DiskUsage
+struct FileSystem
 {
   u64 total;
   u64 free;
@@ -97,8 +98,6 @@ struct Disk
 
   size_t part_count;
   size_t part_capacity;
-
-  struct DiskUsage disk_usage;
 };
 
 struct Device
@@ -126,6 +125,8 @@ Disk *
 disk_create(mem_arena *arena);
 Device *
 device_create(mem_arena *arena);
+FileSystem *
+fs_create(mem_arena *arena);
 
 int
 cpu_read(Cpu *cpu);
@@ -137,22 +138,18 @@ int
 disk_read(Disk *disk, mem_arena *arena);
 int
 device_read(Device *device);
-
 int
-fs_usage(char *path, Disk *disk);
+fs_read(char *path, FileSystem *fs);
 
 // TODO(nasr): add a function that updates certain values incrementally
 // instead of neading to update the entire cpu struct
 
 int
 process_list_collect(Process_List *list, mem_arena *arena);
-
 int
 process_read(i32 pid, Process *out);
-
 int
 process_read2(i32 pid, Process *out);
-
 int
 process_kill(i32 pid, i32 signal);
 

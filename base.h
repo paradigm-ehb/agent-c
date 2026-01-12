@@ -10,17 +10,14 @@
 #define ERR_PERM 3
 #define ERR_INVALID 4
 
+#define BUFFER_SIZE_SMALL 128
+#define BUFFER_SIZE_DEFAULT 256
+#define BUFFER_SIZE_LARGE 512
+#define PATH_MAX_LEN 4096
+
 #define internal static
 #define local_persist static
 #define global_variable static
-
-enum
-{
-  BUFFER_SIZE_SMALL = 128,
-  BUFFER_SIZE_DEFAULT = 256,
-  BUFFER_SIZE_LARGE = 512,
-  PATH_MAX_LEN = 4096
-};
 
 typedef uint64_t u64;
 typedef uint32_t u32;
