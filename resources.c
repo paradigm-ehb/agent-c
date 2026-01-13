@@ -24,7 +24,6 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <sys/statfs.h>
 
 /*
@@ -58,25 +57,6 @@ disk_push_partition(Disk *d, Partition p, mem_arena *arena)
   }
 
   d->partitions[d->part_count++] = p;
-}
-
-/*
- * is_numeric - Check if a string contains only digits
- * @s: String to check
- *
- * Return: 1 if string contains only numeric characters, 0 otherwise
- */
-int
-is_numeric(const char *s)
-{
-  for (; *s; ++s)
-  {
-    if (*s < '0' || *s > '9')
-    {
-      return 0;
-    }
-  }
-  return 1;
 }
 
 /*
