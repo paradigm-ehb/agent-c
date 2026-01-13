@@ -42,4 +42,7 @@ typedef u8 b8;
 u64
 parse_u64(char *buf, size_t len);
 
+b8
+is_numeric(const char *s);
+
 #endif

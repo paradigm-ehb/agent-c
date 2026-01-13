@@ -23,3 +23,22 @@ parse_u64(char *buf, size_t len)
 
   return value;
 }
+
+/*
+ * is_numeric - Check if a string contains only digits
+ * @s: String to check
+ *
+ * Return: 1 if string contains only numeric characters, 0 otherwise
+ */
+b8
+is_numeric(const char *s)
+{
+  for (; *s; ++s)
+  {
+    if (*s < '0' || *s > '9')
+    {
+      return 0;
+    }
+  }
+  return 1;
+}

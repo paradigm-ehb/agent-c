@@ -30,7 +30,7 @@ The design prioritizes **performance**, **predictability**, and **explicit memor
 ## Stack
 
 - **C99** 
-- **C++11** ( requiered for libdn5 )
+- **C++20** ( requiered for libdn5 )
 ---
 
 ## Platform Support
