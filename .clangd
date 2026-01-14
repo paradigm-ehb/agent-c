@@ -1,69 +1,60 @@
+# .clangd — mixed C/C++ project with proto-generated headers
 CompileFlags:
   Add:
-    - -Iinclude
-
+    # Project root (for #include "base/base.h", "libnet/ports.cc", etc.)
+    - -I.
+    
+    # Generated proto headers (if they go into build/)
+    - -Ibuild
+    
+    # System includes for gRPC/protobuf
+    - -I/usr/include
+    - -I/usr/local/include
+    - -Isrc
+    - -Iagent
+    - -Ilocal
+    - -Wall
+    - -g
+    - -O0
+    
   Remove:
-    - -std=*
+    # Strip optimization flags that confuse clangd
     - -O*
     - -march=*
     - -mtune=*
+    - -fPIC
+    - -Wall
+    - -Wextra
 
-# C configuration
-If:
-  Language: C
-Then:
-  CompileFlags:
-    Add:
-      - -std=c99
-      - -xc
-      - -Wall
-      - -Wextra
-      - -Wpedantic
-      - -Wshadow
-      - -Wconversion
-      - -Wsign-conversion
-      - -Wmissing-declarations
-      - -Wundef
-      - -Wpointer-arith
-      - -Wcast-align
-      - -Wcast-qual
-      - -Wwrite-strings
-      - -Wswitch-enum
-      - -Wformat=2
-      - -Wstrict-aliasing=2
-      - -Werror=implicit-function-declaration
-      - -Werror=implicit-int
-      - -Werror=incompatible-pointer-types
-      - -Werror=return-type
-      - -Wformat-security
-      - -Wnull-dereference
-      - -Wmisleading-indentation
-      - -Wunused
-      - -Wuninitialized
-      - -Wdouble-promotion
-      - -Wstrict-overflow=2
-      - -D_POSIX_C_SOURCE=200809L
-      - -ldnf5
-      - I..
+# Suppress common noise
+Diagnostics:
+  Suppress:
+    - unknown-warning-option
+    - unused-command-line-argument
+    - unknown-pragmas
+  ClangTidy:
+    Remove:
+      - modernize-*
+      - readability-identifier-length
 
-# C++ configuration
+# Optional: faster indexing
+Index:
+  Background: Build
+
+---
+# Force C mode for .h files
 If:
-  Language: Cpp
-Then:
-  CompileFlags:
-    Add:
-      - -std=c++20
-      - -Wall
-      - -Wextra
-      - -Wpedantic
-      - -Wshadow
-      - -Wconversion
-      - -Wsign-conversion
-      - -Wundef
-      - -Wpointer-arith
-      - -Wcast-align
-      - -Wcast-qual
-      - -Wformat=2
-      - -Wformat-security
-      - -Wnull-dereference
-      - -Wmisleading-indentation
+  PathMatch: .*\.h$
+CompileFlags:
+  Add:
+    - -xc
+    - -std=c11
+
+---
+# Force C++ mode for .cc files
+If:
+  PathMatch: .*\.(cc|hpp|hh)$
+CompileFlags:
+  Add:
+    - -xc++
+    - -std=c++17

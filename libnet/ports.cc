@@ -1,6 +1,5 @@
-#include "arena.h"
-#include "base.h"
-#include "resources.h"
+#include "base.hh"
+#include "resources.hh"
 #include <fcntl.h>
 #include <netdb.h>
 #include <unistd.h>
@@ -15,6 +14,7 @@
 i8
 port_read_tcp4(Device *device)
 {
+  const char *endofline = "\n";
   if (!device)
   {
     return ERR_INVALID;
@@ -33,7 +33,7 @@ port_read_tcp4(Device *device)
   do
   {
     read(file, buffer, 1);
-  } while (!compare_string(buffer, "\n"));
+  } while (!compare_string(buffer, endofline));
 
   arena_destroy(temp_arena);
   close(file);

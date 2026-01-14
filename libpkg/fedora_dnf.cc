@@ -5,6 +5,7 @@
 
 /**
  * TODO(nasr): pacman impelmentation of package manager
+ * TODO(nasr): load header file symbols for package managers dynamically
  * */
 
 #elif defined(DISTRO_FEDORAH)

@@ -3,8 +3,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "base.h"
-#include "arena.h"
+#include "../base/base.h"
+#include "../base/base_arena.h"
 
 #define RESOURCES_API_VERSION 1
 
@@ -104,6 +104,10 @@ enum TransportLayerType
 {
   TRANSPORT_TCP,
   TRANSPORT_UDP,
+  TRANSPORT_SCTP,
+  /**
+   * NOTE(nasr): don't forget to account for SCTP
+   * */
 };
 
 struct Port

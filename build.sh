@@ -1,46 +1,31 @@
-#!/bin/sh
+#!/bin/bash
 set -eu
+pushd "$(dirname "$0")" >/dev/null
 
-CC=cc
-AR=ar
+# Compiler (fixed)
+compiler="clang"
 
-SRC=resources.c
-OUT_DIR=build
-OUT_OBJ=$OUT_DIR/resources.o
-OUT_LIB=$OUT_DIR/libagent_resources.a
+# gRPC flags
+grpc_c_flags="$(pkg-config --cflags grpc++)"
+grpc_lib_flags="$(pkg-config --libs grpc++)"
 
-CFLAGS="
--std=c99
--Wall
--Wextra
--Wpedantic
--Wshadow
--Wconversion
--Wundef
--Wpointer-arith
--Wcast-align
--Wcast-qual
--Wwrite-strings
--Wformat=2
--Wformat-security 
--Wnull-dereference
--Wmisleading-indentation
--Wunused
--Wuninitialized
--Werror
--Wdouble-promotion
--Wstrict-overflow=2
--D_POSIX_C_SOURCE=200809L
-"
+# Flags
+common_flags="-I../src -Wall $grpc_c_flags"
+link_flags="-lm $grpc_lib_flags"
 
-# TODO(nasr): compile the package manager libs, static bin
-mkdir -p "$OUT_DIR"
+# Prep build dir
+mkdir -p build
+pushd build >/dev/null
 
-echo "Compiling object..."
-$CC $CFLAGS -c "$SRC" -o "$OUT_OBJ"
+# Build
+echo "[build] agent"
+$compiler $common_flags ../agent/agent_core.cc $link_flags -o agent
 
-echo "Creating static library..."
-$AR rcs "$OUT_LIB" "$OUT_OBJ"
+# Run
+echo "[run] ./agent"
+./agent
 
-echo "Done:"
-echo "  $OUT_LIB"
+# Cleanup stack
+popd >/dev/null
+popd >/dev/null
+

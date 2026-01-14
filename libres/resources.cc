@@ -6,11 +6,10 @@
  *
  */
 
-#include "base.h"
 #define _POSIX_C_SOURCE 200809L
 
-#include "resources.h"
-#include "arena.h"
+#include "../libres/resources.h"
+#include "../base/base_arena.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -67,7 +66,7 @@ disk_push_partition(Disk *d, Partition p, mem_arena *arena)
 Cpu *
 cpu_create(mem_arena *m)
 {
-  return arena_push(m, sizeof(Cpu), 1);
+  return (Cpu *)arena_push(m, sizeof(Cpu), 1);
 }
 
 /*
@@ -362,7 +361,7 @@ cpu_read_usage(Cpu *out)
 Ram *
 ram_create(mem_arena *m)
 {
-  return arena_push(m, sizeof(Ram), 1);
+  return (Ram *)arena_push(m, sizeof(Ram), 1);
 }
 
 /*
@@ -446,7 +445,7 @@ ram_read(Ram *out)
 Disk *
 disk_create(mem_arena *m)
 {
-  return arena_push(m, sizeof(Disk), 1);
+  return (Disk *)arena_push(m, sizeof(Disk), 1);
 }
 
 /*
@@ -511,7 +510,7 @@ disk_read(Disk *out, mem_arena *arena)
 FileSystem *
 fs_create(mem_arena *arena)
 {
-  return arena_push(arena, sizeof(FileSystem), 1);
+  return (FileSystem *)arena_push(arena, sizeof(FileSystem), 1);
 }
 
 int
@@ -546,7 +545,7 @@ fs_read(char *path, FileSystem *fs)
 Device *
 device_create(mem_arena *m)
 {
-  return arena_push(m, sizeof(Device), 1);
+  return (Device *)arena_push(m, sizeof(Device), 1);
 }
 
 /*
