@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "base/base.h"
-#include "base/base_arena.h"
 
 #define RESOURCES_API_VERSION 1
 
@@ -113,7 +112,7 @@ enum TransportLayerType
 struct Port
 {
   /**
-   * Get the name by calling 
+   * Get the name by calling
    * what service is listening to port xx
    *
    * */
@@ -135,51 +134,5 @@ struct Device
    * */
   struct Port *port;
 };
-
-mem_arena *
-arena_create(u64 capacity);
-/**
- * TODO(nasr): add error handling for both the destroy and the clear
- * */
-void
-arena_destroy(mem_arena *arena);
-void
-arena_clear(mem_arena *arena);
-
-Cpu *
-cpu_create(mem_arena *arena);
-Ram *
-ram_create(mem_arena *arena);
-Disk *
-disk_create(mem_arena *arena);
-Device *
-device_create(mem_arena *arena);
-FileSystem *
-fs_create(mem_arena *arena);
-
-int
-cpu_read(Cpu *cpu);
-int
-cpu_read_usage(Cpu *cpu);
-int
-ram_read(Ram *ram);
-int
-disk_read(Disk *disk, mem_arena *arena);
-int
-device_read(Device *device);
-int
-fs_read(char *path, FileSystem *fs);
-
-// TODO(nasr): add a function that updates certain values incrementally
-// instead of neading to update the entire cpu struct
-
-int
-process_list_collect(Process_List *list, mem_arena *arena);
-int
-process_read(i32 pid, Process *out);
-int
-process_read2(i32 pid, Process *out);
-int
-process_kill(i32 pid, i32 signal);
 
 #endif /* RESOURCES_H */

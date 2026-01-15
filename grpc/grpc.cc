@@ -1,11 +1,3 @@
-/* ========================================================================
-   $File: grpc.c $
-   $Date: 2026-01-14 $
-   $Revision: $
-   $Author: nsrddyn@gmail.com $
-   $Notice: (C) Copyright 2026 $
-   ======================================================================== */
-
 #include <cstdio>
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>

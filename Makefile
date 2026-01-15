@@ -2,7 +2,7 @@
 CC := clang
 
 # Paths
-SRC_DIR := ../agent-resources
+SRC_DIR := ../agent-c
 AGENT_SRC := ./agent/agent_core.cc
 BUILD_DIR := build
 TARGET := agent

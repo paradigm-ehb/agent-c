@@ -59,6 +59,14 @@ fi
 
 echo "Using grpc_cpp_plugin: $GRPC_CPP_PLUGIN"
 
+
+# -- Clean output directory --------------------------------------------------
+
+if [ -d "$OUT_DIR" ]; then
+    echo "Removing existing '$OUT_DIR/' directory"
+    rm -rf "$OUT_DIR"
+fi
+
 # -- Generate C++ files from .proto files (using find) ---------------------
 
 mkdir -p "$OUT_DIR"

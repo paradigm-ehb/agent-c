@@ -1,11 +1,3 @@
-/*
- * name: Abdellah El Morabit
- * organization: Paradigm-Ehb
- * year: 2025-2026
- * description: resources gathering library
- *
- */
-
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +13,12 @@
 #include <sys/statfs.h>
 
 #include "libres/resources.h"
+
+#include "base/base_arena.c"
 #include "base/base_arena.h"
+
+#include "base/base.h"
+#include "base/base.c"
 
 #define _POSIX_C_SOURCE 200809L
 
