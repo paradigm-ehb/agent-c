@@ -2,7 +2,6 @@
 #define BASE_H
 
 #include <stdint.h>
-#include <stdio.h>
 
 #define OK 0
 #define ERR_IO 1
@@ -10,14 +9,18 @@
 #define ERR_PERM 3
 #define ERR_INVALID 4
 
+#define KiB(n) (((U64)(n)) << 10)
+#define MiB(n) (((U64)(n)) << 20)
+#define GiB(n) (((U64)(n)) << 30)
+
 #define BUFFER_SIZE_SMALL 128
 #define BUFFER_SIZE_DEFAULT 256
 #define BUFFER_SIZE_LARGE 512
 #define PATH_MAX_LEN 4096
 
 #define internal static
-#define local_persist static
 #define global_variable static
+#define local_persist static
 
 #define DEPRECATED __attribute__((__deprecated__))
 
@@ -40,14 +43,5 @@ typedef u8 b8;
 
 #define TRUE 1
 #define FALSE 0
-
-internal u64
-parse_u64(char *buf, size_t len);
-
-internal b8
-is_numeric(char *s);
-
-internal b8
-compare_string(char *c1, char *c2);
 
 #endif

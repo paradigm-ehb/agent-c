@@ -1,4 +1,5 @@
 #include "base.h"
+#include "stdio.h"
 
 /**
  * Helper function to parse strings to int using ascii codes
@@ -44,7 +45,7 @@ is_numeric(char *s)
 }
 
 internal b8
-compare_string(char *c1, char *c2)
+compare_string(const char *c1, const char *c2)
 {
   if (sizeof(c1) != sizeof(c2))
   {
