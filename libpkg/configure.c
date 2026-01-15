@@ -1,6 +1,6 @@
-#include "../arena.h"
-#include "../resources.h"
-#include "pkgm.hpp"
+#include "base/base.h"
+#include "libres/resources.h"
+#include "libpkg/pkgm.h"
 #include <string.h>
 #include "stdio.h"
 

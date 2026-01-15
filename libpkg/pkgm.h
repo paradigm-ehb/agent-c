@@ -1,8 +1,8 @@
 #ifndef PKGMANAGER_H
 #define PKGMANAGER_H
 
-#include "../arena.h"
-#include "../base.h"
+#include "base/base_arena.h"
+#include "base/base.h"
 
 enum LinuxDistro
 {

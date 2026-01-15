@@ -14,6 +14,8 @@
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
 
+#include "grpc.h"
+
 void
 run_server()
 {

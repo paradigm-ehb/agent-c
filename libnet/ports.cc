@@ -1,8 +1,9 @@
-#include "base.hh"
-#include "resources.hh"
 #include <fcntl.h>
 #include <netdb.h>
 #include <unistd.h>
+
+#include "base/base.h"
+#include "libres/resources.h"
 
 /**
  * Retrieve listening service to port x

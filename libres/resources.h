@@ -3,8 +3,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "../base/base.h"
-#include "../base/base_arena.h"
+#include "base/base.h"
+#include "base/base_arena.h"
 
 #define RESOURCES_API_VERSION 1
 
