@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package services.v1;
 
-option cpp_namespace = "paradigm::services::v1";
-
 service HandlerService {
 
   rpc UnitAction (ServiceActionRequest) returns (ServiceActionReply) {}

@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package actions.v1;
 
-option cpp_namespace = "paradigm::device_actions::v1;
-
 // TODO(nasr): reboot poweroff etc
 
 service ActionService {

@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package resources.v3;
 
-option cpp_namespace = "paradigm::resources::v3";
-
 /**
  * ResourcesService exposes read-only system inspection endpoints
  * and limited process control facilities.

@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package resources.v1;
 
-option go_package = "paradigm-ehb/agent/gen/resources/v1;resourcespb";
-option cpp_namespace = "paradigm::resources/v1";
 
 service ResourcesService {
   rpc GetSystemResources(GetSystemResourcesRequest)

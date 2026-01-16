@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package resources.v2;
 
-option cpp_namespace = "paradigm::resources::v2";
-
 service ResourcesService {
   rpc GetSystemResources(GetSystemResourcesRequest)
       returns (GetSystemResourcesResponse);

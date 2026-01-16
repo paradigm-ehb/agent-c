@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-option cpp_namespace = "paradigm::greet";
-
 package greet;
 
 /*

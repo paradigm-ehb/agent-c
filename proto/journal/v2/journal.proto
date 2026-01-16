@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package journal.v2;
 
-option cpp_namespace = "paradigm::journal::v2";
-
 service JournalService {
   rpc Stream (JournalRequest) returns (stream JournalEntry);
   rpc Metadata (JournalMetadataRequest) returns (JournalMetadata);

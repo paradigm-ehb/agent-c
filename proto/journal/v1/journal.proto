@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package journal.v1;
 
-option cpp_namespace = "paradigm::journal::v1";
-
 /**
  * JournalService
  *
@@ -149,4 +147,4 @@ message JournalChunk {
    * Opaque payload containing journal entry data.
    */
   bytes reply = 1;
-}
+
