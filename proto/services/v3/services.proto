@@ -2,8 +2,7 @@ syntax = "proto3";
 
 package services.v3;
 
-option go_package = "paradigm-ehb/agent/proto/services/v3";
-
+option cpp_namespace = "paradigm::services::v3";
 
 service HandlerService {
   rpc PerformUnitAction (UnitActionRequest) returns (UnitActionReply);
@@ -18,7 +17,7 @@ service HandlerService {
 message UnitActionRequest {
   string unit_name = 1;
 
- enum UnitAction {
+  enum UnitAction {
     UNIT_ACTION_UNSPECIFIED = 0;
     UNIT_ACTION_START = 1;
     UNIT_ACTION_STOP = 2;
@@ -101,7 +100,7 @@ message GetUnitsFilteredRequest {
     ERROR = 4;
     MASKED = 5;
   }
-  
+
   repeated UnitFileState filters = 1;
 
 }

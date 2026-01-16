@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package services.v2;
 
-option go_package = "paradigm-ehb/agent/proto/services/v2";
+option cpp_namespace = "paradigm::services::v2";
 
 
 service HandlerService {

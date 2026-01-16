@@ -1,0 +1,288 @@
+syntax = "proto3";
+
+package services.v4;
+
+option cpp_namespace = "paradigm::services::v4";
+
+/*
+ * HandlerService exposes a gRPC interface for interacting with systemd.
+ *
+ * All RPCs are backed by org.freedesktop.systemd1 over D-Bus.
+ * Semantics follow systemd behavior:
+ *  - Mutating calls usually create jobs.
+ *  - A successful RPC means the request was accepted, not completed.
+ *  - State returned by queries is a snapshot at call time.
+ */
+service HandlerService {
+
+  /*
+   * Perform a runtime action on a unit (start, stop, restart).
+   *
+   * Corresponds to:
+   *   Manager.StartUnit
+   *   Manager.StopUnit
+   *   Manager.RestartUnit
+   */
+  rpc PerformUnitAction (UnitActionRequest)
+      returns (UnitActionReply);
+
+  /*
+   * Enable or disable a unit file.
+   *
+   * Corresponds to:
+   *   Manager.EnableUnitFiles
+   *   Manager.DisableUnitFiles
+   */
+  rpc PerformUnitFileAction (UnitFileActionRequest)
+      returns (UnitFileActionReply);
+
+  /*
+   * Query units with optional filtering.
+   *
+   * Internally backed by combinations of:
+   *   ListUnits
+   *   ListUnitFiles
+   */
+  rpc QueryUnits (UnitQueryRequest)
+      returns (GetUnitsReply);
+
+  /*
+   * Retrieve the current runtime and file state of a single unit.
+   *
+   * Internally backed by:
+   *   GetUnit
+   *   Properties.GetAll
+   */
+  rpc GetUnitStatus (GetUnitStatusRequest)
+      returns (GetUnitStatusReply);
+
+  /*
+   * Stream unit- and job-related events.
+   *
+   * Backed by D-Bus signals such as:
+   *   PropertiesChanged
+   *   JobRemoved
+   *   UnitNew / UnitRemoved
+   */
+  rpc WatchUnits (WatchUnitsRequest)
+      returns (stream UnitEvent);
+
+  // TODO(nasr): implement job tracking APIs (GetJobStatus, ListJobs)
+  // TODO(nasr): add authentication / authorization layer
+}
+
+/*
+ * Request to perform a runtime action on a unit.
+ */
+message UnitActionRequest {
+  // Full unit name (e.g. "sshd.service")
+  string unit_name = 1;
+
+  enum UnitAction {
+    UNIT_ACTION_UNSPECIFIED = 0;
+    UNIT_ACTION_START = 1;
+    UNIT_ACTION_STOP = 2;
+    UNIT_ACTION_RESTART = 3;
+  }
+
+  UnitAction action = 2;
+
+  // Whether to force the action, bypassing certain systemd checks
+  bool force = 3; // TODO(nasr): map to explicit systemd job modes
+}
+
+/*
+ * Result of a runtime unit action request.
+ */
+message UnitActionReply {
+  // Indicates whether systemd accepted the request
+  bool success = 1;
+
+  // Populated when success == false
+  string error_message = 2;
+
+  // Identifier of the created job, if any
+  uint32 job_id = 3;
+
+  // D-Bus object path of the created job
+  string job_path = 4;
+
+  // TODO(nasr): replace with Job message
+}
+
+/*
+ * Request to enable or disable a unit file.
+ */
+message UnitFileActionRequest {
+  // Full unit name
+  string unit_name = 1;
+
+  enum UnitFileAction {
+    UNIT_FILE_ACTION_UNSPECIFIED = 0;
+    UNIT_FILE_ACTION_ENABLE = 1;
+    UNIT_FILE_ACTION_DISABLE = 2;
+  }
+
+  UnitFileAction action = 2;
+
+  // Apply change only at runtime (until reboot)
+  bool runtime = 3;
+
+  // Force the operation if possible
+  bool force = 4;
+}
+
+/*
+ * Result of a unit file action.
+ */
+message UnitFileActionReply {
+  bool success = 1;
+  string error_message = 2;
+
+  // TODO(nasr): expose affected symlink paths
+}
+
+/*
+ * Request for querying units with optional filters.
+ */
+message UnitQueryRequest {
+  // Only return units currently loaded into systemd
+  bool loaded_only = 1;
+
+  // Filter by unit file state
+  repeated UnitFileState file_states = 2;
+
+  // Optional name filter (exact match or prefix)
+  string name_filter = 3;
+
+  // TODO(nasr): support regex / glob filtering
+}
+
+/*
+ * Generic reply containing a list of units.
+ */
+message GetUnitsReply {
+  repeated LoadedUnit units = 1;
+  bool success = 2;
+  string error_message = 3;
+}
+
+/*
+ * Detailed representation of a unit as known by systemd.
+ */
+message LoadedUnit {
+  string name = 1;
+  string description = 2;
+
+  // High-level runtime state
+  ActiveState active_state = 3;
+
+  // systemd sub-state (stringly typed)
+  string sub_state = 4;
+
+  // Unit file state
+  UnitFileState file_state = 5;
+
+  // D-Bus object path of the unit
+  string object_path = 6;
+
+  // Pending job information, if any
+  uint32 queued_job = 7;
+  string job_type = 8;
+  string job_path = 9;
+
+  // TODO(nasr): expose full Properties.GetAll as map<string, string>
+}
+
+/*
+ * Runtime activity state of a unit.
+ */
+enum ActiveState {
+  ACTIVE_STATE_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  INACTIVE = 2;
+  FAILED = 3;
+  ACTIVATING = 4;
+  DEACTIVATING = 5;
+}
+
+/*
+ * File-level state of a unit.
+ */
+enum UnitFileState {
+  UNIT_FILE_STATE_UNSPECIFIED = 0;
+  ENABLED = 1;
+  DISABLED = 2;
+  MASKED = 3;
+  NOT_FOUND = 4;
+  BAD_SETTING = 5;
+  ERROR = 6;
+}
+
+/*
+ * Request to retrieve the status of a single unit.
+ */
+message GetUnitStatusRequest {
+  string unit_name = 1;
+}
+
+/*
+ * Reply containing a snapshot of a unit's state.
+ */
+message GetUnitStatusReply {
+  ActiveState active_state = 1;
+  string sub_state = 2;
+  UnitFileState file_state = 3;
+
+  bool success = 4;
+  string error_message = 5;
+
+  // TODO(nasr): return unified UnitStatus message
+}
+
+/*
+ * Representation of a systemd job.
+ */
+message Job {
+  uint32 id = 1;
+  string type = 2;
+  string state = 3;
+  string object_path = 4;
+
+  // TODO(nasr): formalize job states as enum
+}
+
+/*
+ * Request to subscribe to unit-related events.
+ */
+message WatchUnitsRequest {
+  // Optional unit name filter
+  string unit_name = 1;
+
+  // TODO(nasr): add event-type filtering
+}
+
+/*
+ * Event emitted by WatchUnits stream.
+ */
+message UnitEvent {
+
+  enum EventType {
+    EVENT_TYPE_UNSPECIFIED = 0;
+    UNIT_STATE_CHANGED = 1;
+    JOB_STARTED = 2;
+    JOB_FINISHED = 3;
+    UNIT_ADDED = 4;
+    UNIT_REMOVED = 5;
+  }
+
+  EventType type = 1;
+
+  // Unit associated with the event, if applicable
+  string unit_name = 2;
+
+  // Human-readable event information
+  string message = 3;
+
+  // TODO(nasr): include before/after snapshots
+}
