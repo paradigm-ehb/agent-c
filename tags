@@ -8016,7 +8016,7 @@ greet	gen/greet/greet.grpc.pb.h	/^namespace greet {$/;"	n
 greet	gen/greet/greet.pb.cc	/^namespace greet {$/;"	n	file:
 greet	gen/greet/greet.pb.h	/^namespace greet {$/;"	n
 greet	proto/greet/greet.proto	/^package greet;$/;"	p
-grpc_server_setup	grpc_service/grpc_service.cc	/^grpc_server_setup()$/;"	f	typeref:typename:local_internal void
+grpc_server_setup	grpc_service/server.cc	/^grpc_server_setup()$/;"	f	typeref:typename:local_internal void
 has_cpu	gen/resources/v1/deviceresources.pb.h	/^inline bool SystemResources::has_cpu() const {$/;"	f	class:resources::v1::SystemResources	typeref:typename:bool
 has_cpu	gen/resources/v2/deviceresources.pb.h	/^inline bool SystemResources::has_cpu() const {$/;"	f	class:resources::v2::SystemResources	typeref:typename:bool
 has_cpu	gen/resources/v3/deviceresources.pb.h	/^inline bool GetCpuReply::has_cpu() const {$/;"	f	class:resources::v3::GetCpuReply	typeref:typename:bool

@@ -3,7 +3,7 @@
 #include <grpcpp/server_builder.h>
 #include <memory>
 
-#include "grpc_service/grpc_service.h"
+#include "grpc_server/server.h"
 #include "base/base.h"
 
 #include <grpcpp/grpcpp.h>

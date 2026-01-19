@@ -7,7 +7,7 @@
 #include "libvm/qc.c"
 #include "auth/auth.cc"
 #include "dbus/dbushandler.cc"
-#include "grpc_service/grpc_service.cc"
+#include "grpc_server/server.cc"
 #include "agent/core.cc"
 #ifdef local_internal
 #undef local_internal
