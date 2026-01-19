@@ -1,10 +1,14 @@
-#include "base/base.h"
 #include "libres/resources.h"
-#include "libpkg/pkgm.h"
-#include <string.h>
-#include "stdio.h"
+#include "libpkg/pkg.h"
 
-internal char *
+#include "base/base.h"
+#include "base/base_arena.h"
+
+#include "libres/resources.h"
+
+#include <string.h>
+
+local_internal char *
 find_lxd_pkgm(mem_arena *arena)
 {
   Device *device = device_create(arena);
@@ -32,10 +36,10 @@ find_lxd_pkgm(mem_arena *arena)
      * - Rationale:
      *     - Lowercase letters appear after uppercase letters in ASCII.
      *     - Case conversion can be done via direct numeric comparison,
-     *       without locale or library calls.
+     *       without internale or library calls.
      */
     /*
-      Calculate the lower-case upper-case differnce 
+      Calculate the lower-case upper-case differnce
     */
     i8 lwc_diff = 'a' - 'A';
     if (distro_unparsed[word_idx] != ' ')
@@ -55,10 +59,3 @@ find_lxd_pkgm(mem_arena *arena)
   return buffer;
 }
 
-int
-main()
-{
-  mem_arena *arena = arena_create(GiB(1));
-  printf("distro name %s", find_lxd_pkgm(arena));
-  arena_destroy(arena);
-}

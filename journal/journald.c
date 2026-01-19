@@ -1,8 +1,20 @@
+/*
+ *  TODO(nasr): replacing assert.h
+ *
+ */
 #include <assert.h>
+#include <cstdio>
+
 #include <systemd/sd-journal.h>
+
 #include "base/base.h"
 #include "journald.h"
 
+/*
+ * TODO(nasr): replace with meta program
+ * */
+
+/*
 global_variable const char *journal_field_names[JOURNAL_FIELD_COUNT] = {
   [JOURNAL_FIELD_PRIORITY] = "PRIORITY",
   [JOURNAL_FIELD_MESSAGE] = "MESSAGE",
@@ -12,24 +24,37 @@ global_variable const char *journal_field_names[JOURNAL_FIELD_COUNT] = {
   [JOURNAL_FIELD_GID] = "_GID",
   [JOURNAL_FIELD_COMM] = "_COMM",
   [JOURNAL_FIELD_EXE] = "_EXE",
-  [JOURNAL_FIELD_SYSTEMD_UNIT] = "_SYSTEMD_UNIT",
-  [JOURNAL_FIELD_SYSTEMD_USER_UNIT] = "_SYSTEMD_USER_UNIT",
+  [JOURNAL_FIELD_SYSTEMD_UNIT] = "_SYSTEMD_UNIT", [JOURNAL_FIELD_SYSTEMD_USER_UNIT] = "_SYSTEMD_USER_UNIT",
   [JOURNAL_FIELD_BOOT_ID] = "_BOOT_ID",
   [JOURNAL_FIELD_MACHINE_ID] = "_MACHINE_ID",
   [JOURNAL_FIELD_HOSTNAME] = "_HOSTNAME",
   [JOURNAL_FIELD_TRANSPORT] = "_TRANSPORT",
 };
+*/
 
-internal JournalField
-parse_unit_name(char *unit, JournalField jf)
+local_internal JournalField
+parse_unit_name(char *unit)
 {
+
+  /**
+   * TODO(nasr): replacement to remove warnigns for now
+   */
+
+  std::printf("%s", unit);
+
   return JOURNAL_FIELD_HOSTNAME;
 }
 
-internal const char *
-logs(char *unit, char *time)
+local_internal const char *
+logs(char *unit, char *time, JournalField jf)
 {
   sd_journal *journal = NULL;
+  /**
+   * TODO(nasr): replacement to remove warnigns for now
+   */
+
+  std::printf("%s", unit);
+  std::printf("%s", time);
 
   int code = sd_journal_open(&journal, SD_JOURNAL_LOCAL_ONLY);
   if (code != 0)

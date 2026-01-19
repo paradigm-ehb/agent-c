@@ -1,38 +1,66 @@
-# Toolchain
-CC := clang
+# Compilers
+CXX := g++
+CC  := gcc
 
 # Paths
-SRC_DIR := ../agent-c
-AGENT_SRC := ./agent/agent_core.cc
+SRC_DIR   := .
+GEN_DIR   := gen
 BUILD_DIR := build
-TARGET := agent
 
-# gRPC flags (resolved at make time)
-GRPC_CFLAGS := $(shell pkg-config --cflags grpc++)
-GRPC_LIBS   := $(shell pkg-config --libs grpc++)
+TARGET := $(BUILD_DIR)/agent
 
-# Flags
-CFLAGS := -I$(SRC_DIR) -Wall $(GRPC_CFLAGS)
-LDFLAGS := -lm $(GRPC_LIBS)
+# Includes
+INCLUDES := \
+	-I$(SRC_DIR) \
+	-I$(GEN_DIR)
 
-# Default target
-.PHONY: all
-all: $(BUILD_DIR)/$(TARGET)
+INCLUDES += $(shell pkg-config --cflags grpc++)
+LDFLAGS  += $(shell pkg-config --libs grpc++)
 
-# Build rule
-$(BUILD_DIR)/$(TARGET): $(AGENT_SRC)
+# Compiler flags
+CXXFLAGS := \
+	-std=c++17 \
+	-Wall \
+	-Wextra \
+	-Wno-unused-function \
+	-lgrpc++_reflection \
+	$(INCLUDES)
+
+CFLAGS := \
+	-std=c99 \
+	-Wall \
+	-Wextra \
+	-Wno-unused-function \
+	$(INCLUDES)
+
+# Linker flags
+LDFLAGS := \
+	-pthread \
+	-lgrpc++ \
+	-lgrpc \
+	-lprotobuf \
+	-labsl_base \
+	-labsl_synchronization \
+	-labsl_strings \
+	-ldbus-1 \
+	-lsystemd \
+	-lssl \
+	-lcrypto
+
+# Sources
+# Unity build OR list files explicitly
+SOURCES := \
+	unity.cc
+
+
+# Rules
+all: $(TARGET)
+
+$(TARGET): $(SOURCES)
 	@mkdir -p $(BUILD_DIR)
-	@echo "[build] $(TARGET)"
-	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
-# Run target
-.PHONY: run
-run: all
-	@echo "[run] ./$(BUILD_DIR)/$(TARGET)"
-	@./$(BUILD_DIR)/$(TARGET)
-
-# Clean
-.PHONY: clean
 clean:
-	@echo "[clean]"
 	rm -rf $(BUILD_DIR)
+
+.PHONY: all clean

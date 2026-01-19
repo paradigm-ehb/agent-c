@@ -3,7 +3,10 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
+
 #include "base/base.h"
+#include "base/base_arena.h"
 
 #define RESOURCES_API_VERSION 1
 
@@ -134,5 +137,80 @@ struct Device
    * */
   struct Port *port;
 };
+
+local_internal Cpu *
+cpu_create(mem_arena *arena);
+
+local_internal int
+cpu_read(Cpu *out);
+local_internal int
+cpu_read_arm64(Cpu *out);
+local_internal int
+cpu_read_amd64(Cpu *out);
+
+local_internal int
+cpu_read_usage(Cpu *out);
+
+local_internal int
+cpu_get_cores_enabled_arm(Cpu *out);
+local_internal int
+cpu_read_cpu_model_name_arm64(Cpu *out);
+local_internal int
+cpu_read_enabled_core_cpu_frequency(Cpu *out, int enabled_cpu_count);
+
+/* =========================
+   RAM
+   ========================= */
+
+local_internal Ram *
+ram_create(mem_arena *arena);
+local_internal int
+ram_read(Ram *out);
+
+/* =========================
+   Disk / Filesystem
+   ========================= */
+
+local_internal Disk *
+disk_create(mem_arena *arena);
+
+local_internal int
+disk_read(Disk *out, mem_arena *arena);
+
+local_internal FileSystem *
+fs_create(mem_arena *arena);
+
+local_internal int
+fs_read(char *path, FileSystem *fs);
+
+/* =========================
+   Device
+   ========================= */
+
+local_internal Device *
+device_create(mem_arena *arena);
+
+local_internal int
+device_read(Device *out);
+
+local_internal int
+device_up_time(Device *out);
+
+/* =========================
+   Process listing / inspection
+   ========================= */
+
+local_internal int
+process_list_collect(Process_List *list, mem_arena *arena);
+
+local_internal  int
+process_read(int32_t pid, Process *out);
+
+/* =========================
+   Process control
+   ========================= */
+
+local_internal int
+process_kill(pid_t pid, int signal);
 
 #endif /* RESOURCES_H */

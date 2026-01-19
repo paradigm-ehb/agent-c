@@ -1,93 +1,64 @@
 #!/bin/bash
-set -e
 
-# -- Configuration ----------------------------------------------------------
+set -euo pipefail
 
-PROTOC_VERSION="30.2"
-INSTALL_DIR="$HOME/.local"
-BIN_DIR="$INSTALL_DIR/bin"
-PROTOC="$BIN_DIR/protoc"
+# Protobuf / gRPC code generation
 
+# Directories
 PROTO_DIR="proto"
 OUT_DIR="gen"
 
-PB_RELEASES="https://github.com/protocolbuffers/protobuf/releases"
-
-# -- Detect system architecture ---------------------------------------------
-
-ARCH="$(uname -m)"
-
-if [ "$ARCH" = "x86_64" ]; then
-    PROTOC_ARCH="linux-x86_64"
-elif [ "$ARCH" = "aarch64" ]; then
-    PROTOC_ARCH="linux-aarch_64"
-else
-    echo "Unsupported architecture: $ARCH"
-    exit 1
-fi
-
-# -- Ensure protoc is installed --------------------------------------------
-
+# Locate protoc (FORCE system version, ignore ~/.local/bin)
+PROTOC="/usr/bin/protoc"  # Explicitly use system protoc
 if [ ! -x "$PROTOC" ]; then
-    echo "protoc not found, installing locally..."
-
-    ZIP="protoc-${PROTOC_VERSION}-${PROTOC_ARCH}.zip"
-    URL="$PB_RELEASES/download/v${PROTOC_VERSION}/${ZIP}"
-
-    mkdir -p "$INSTALL_DIR"
-    curl -L -o "$ZIP" "$URL"
-    unzip -o "$ZIP" -d "$INSTALL_DIR"
-    rm "$ZIP"
-else
-    echo "protoc found: $PROTOC"
+  echo "error: system protoc not found at $PROTOC"
+  echo "install with: sudo dnf install protobuf-compiler"
+  exit 1
 fi
 
-export PATH="$BIN_DIR:$PATH"
+echo "Using protoc: $PROTOC"
+$PROTOC --version
 
-# -- Ensure grpc_cpp_plugin exists -----------------------------------------
-
-GRPC_CPP_PLUGIN="$(command -v grpc_cpp_plugin)"
-
+# Locate grpc_cpp_plugin (system)
+GRPC_CPP_PLUGIN="$(command -v grpc_cpp_plugin || true)"
 if [ -z "$GRPC_CPP_PLUGIN" ]; then
-    echo "grpc_cpp_plugin not found."
-    echo "Install it using your system package manager:"
-    echo "  Arch   : pacman -S grpc"
-    echo "  Fedora : dnf install grpc-devel"
-    echo "  Ubuntu : apt install grpc++ grpc-proto"
-    exit 1
+  echo "error: failed to build protobufs, grpc_cpp_plugin not found"
+  exit 1
 fi
-
 echo "Using grpc_cpp_plugin: $GRPC_CPP_PLUGIN"
 
-
-# -- Clean output directory --------------------------------------------------
-
-if [ -d "$OUT_DIR" ]; then
-    echo "Removing existing '$OUT_DIR/' directory"
-    rm -rf "$OUT_DIR"
+# Validate proto directory
+if [ ! -d "$PROTO_DIR" ]; then
+  echo "error: proto directory '$PROTO_DIR' does not exist"
+  exit 1
 fi
 
-# -- Generate C++ files from .proto files (using find) ---------------------
-
+# Clean output directory
+if [ -d "$OUT_DIR" ]; then
+  echo "Removing existing '$OUT_DIR/'"
+  rm -rf "$OUT_DIR"
+fi
 mkdir -p "$OUT_DIR"
 
+# Find .proto files
 PROTO_FILES="$(find "$PROTO_DIR" -type f -name '*.proto')"
-
 if [ -z "$PROTO_FILES" ]; then
-    echo "No .proto files found in $PROTO_DIR"
-    exit 0
+  echo "No .proto files found in '$PROTO_DIR'"
+  exit 0
 fi
 
-for proto_file in $PROTO_FILES; do
-    echo "Compiling: $proto_file"
-
-    protoc \
-        -I "$PROTO_DIR" \
-        --cpp_out="$OUT_DIR" \
-        --grpc_out="$OUT_DIR" \
-        --plugin=protoc-gen-grpc="$GRPC_CPP_PLUGIN" \
-        "$proto_file"
+# Generate code
+for proto in $PROTO_FILES; do
+  echo "Compiling: $proto"
+  "$PROTOC" \
+    -I "$PROTO_DIR" \
+    --cpp_out="$OUT_DIR" \
+    --grpc_out="$OUT_DIR" \
+    --plugin=protoc-gen-grpc="$GRPC_CPP_PLUGIN" \
+    "$proto"
 done
 
+# Done
 echo ""
-echo "Done. Generated files are in '$OUT_DIR/'"
+echo "Protobuf / gRPC generation complete"
+echo "Output directory: $OUT_DIR/"

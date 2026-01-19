@@ -1,59 +1,31 @@
 CompileFlags:
+  CompilationDatabase: .
+
   Add:
-    # Project root (for #include "base/base.h", "libnet/ports.cc", etc.)
-    - -I.
-
-    # Generated proto headers (if they go into build/)
-    - -Ibuild
-
-    # System includes for gRPC/protobuf
-    - -I/usr/include
-    - -I/usr/local/include
+    - --gcc-toolchain=/usr
+    - -std=c++17
     - -I/home/nasr/agent-c
-    - -Iagent
-    - -Ilocal
+    - -I/home/nasr/agent-c/gen
     - -Wall
+    - -Wextra
+    - -Wno-unused-function
     - -g
     - -O0
 
   Remove:
-    # Strip optimization flags that confuse clangd
-    - -O*
+    - -l*
+    - -pthread
     - -march=*
     - -mtune=*
     - -fPIC
-    - -Wall
-    - -Wextra
+    - -O*
 
-# Suppress common noise
 Diagnostics:
   Suppress:
+    - pp_file_not_found
     - unknown-warning-option
     - unused-command-line-argument
-    - unknown-pragmas
-  ClangTidy:
-    Remove:
-      - modernize-*
-      - readability-identifier-length
+    - macro-redefined
 
-# Optional: faster indexing
 Index:
   Background: Build
-
----
-# Force C mode for .h files
-If:
-  PathMatch: .*\.h$
-CompileFlags:
-  Add:
-    - -xc
-    - -std=c99
-
----
-# Force C++ mode for .cc files
-If:
-  PathMatch: .*\.(cc|hpp|hh)$
-CompileFlags:
-  Add:
-    - -xc++
-    - -std=c++17

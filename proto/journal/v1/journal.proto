@@ -148,3 +148,4 @@ message JournalChunk {
    */
   bytes reply = 1;
 
+}

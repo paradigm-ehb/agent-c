@@ -1,10 +1,10 @@
-#include "base.h"
-#include "stdio.h"
+#include "base/base.h"
+#include "stddef.h"
 
 /**
  * Helper function to parse strings to int using ascii codes
  * */
-internal u64
+local_internal u64
 parse_u64(char *buf, size_t len)
 {
   u64 value = 0;
@@ -31,7 +31,7 @@ parse_u64(char *buf, size_t len)
  *
  * Return: 1 if string contains only numeric characters, 0 otherwise
  */
-internal b8
+local_internal b8
 is_numeric(char *s)
 {
   for (; *s; ++s)
@@ -44,7 +44,7 @@ is_numeric(char *s)
   return 1;
 }
 
-internal b8
+local_internal b8
 compare_string(const char *c1, const char *c2)
 {
   if (sizeof(c1) != sizeof(c2))
@@ -53,7 +53,7 @@ compare_string(const char *c1, const char *c2)
   }
 
   for (
-    i32 word_idx = 0;
+    u64 word_idx = 0;
     word_idx <= sizeof(*c1);
     ++word_idx)
   {

@@ -27,4 +27,23 @@ struct mem_arena
   u64 pos;
 };
 
+local_internal mem_arena *
+arena_create(u64 capacity);
+
+local_internal void
+arena_destroy(mem_arena *arena);
+
+local_internal void *
+arena_push(mem_arena *arena, u64 size, b32 non_zero);
+
+local_internal void
+arena_pop(mem_arena *arena, u64 size);
+
+local_internal void
+arena_pop_to(mem_arena *arena, u64 pos);
+
+local_internal void
+arena_clear(mem_arena *arena);
+
+
 #endif

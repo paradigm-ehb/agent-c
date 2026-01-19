@@ -9,6 +9,11 @@
  * */
 
 #elif defined(DISTRO_FEDORAH)
+/**
+ * TODO(nasr): this is causing a c++ version error
+ * look for a solution,
+ * maybe look for more compatible version of libdnf
+ */
 
 #include <libdnf5/base/base.hpp>
 #include <libdnf5/rpm/package_query.hpp>

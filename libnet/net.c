@@ -3,7 +3,8 @@
 #include <unistd.h>
 
 #include "libres/resources.h"
-#include "base/.c"
+#include "base/base_arena.h"
+#include "base/base.h"
 
 /**
  * Retrieve listening service to port x
@@ -12,7 +13,7 @@
  * use /proc/net/tcp and /proc/net/udp
  * */
 
-i8
+local_internal i8
 port_read_tcp4(Device *device)
 {
   char endofline[] = "\n";
@@ -38,10 +39,10 @@ port_read_tcp4(Device *device)
 
   arena_destroy(temp_arena);
   close(file);
-  return OK;
+  return ERR_OK;
 }
 
-i8
+local_internal i8
 port_read_tcp6(Device *device)
 {
   if (!device)
@@ -66,7 +67,7 @@ port_read_tcp6(Device *device)
 
   arena_destroy(temp_arena);
   close(file);
-  return OK;
+  return ERR_OK;
 }
 
 /**

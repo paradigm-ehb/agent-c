@@ -13,12 +13,8 @@
 #include <sys/statfs.h>
 
 #include "libres/resources.h"
-
-#include "base/base_arena.c"
 #include "base/base_arena.h"
-
 #include "base/base.h"
-#include "base/base.c"
 
 #define _POSIX_C_SOURCE 200809L
 
@@ -32,7 +28,7 @@
  * silently.
  */
 
-void
+local_internal void
 disk_push_partition(Disk *d, Partition p, mem_arena *arena)
 {
   if (d->part_count == d->part_capacity)
@@ -60,7 +56,7 @@ disk_push_partition(Disk *d, Partition p, mem_arena *arena)
  *
  * Return: Pointer to newly allocated Cpu, or NULL on allocation failure
  */
-Cpu *
+local_internal Cpu *
 cpu_create(mem_arena *m)
 {
   return (Cpu *)arena_push(m, sizeof(Cpu), 1);
@@ -73,7 +69,7 @@ cpu_create(mem_arena *m)
  * Reads vendor_id, model name, cpu MHz, and cpu cores from /proc/cpuinfo.
  * The function reads the first occurrence of each field.
  *
- * Return: OK on success, AGENT_ERR_INVALID if out is NULL,
+ * Return: ERR_OK on success, AGENT_ERR_INVALID if out is NULL,
  *         ERR_IO if /proc/cpuinfo cannot be opened
  */
 
@@ -117,7 +113,7 @@ cpu_read_enabled_core_cpu_frequency(Cpu *out, int enabled_cpu_count)
   fclose(fp);
 
   snprintf(out->frequency, sizeof(out->frequency), "%lu", freq);
-  return OK;
+  return ERR_OK;
 }
 
 int
@@ -158,7 +154,7 @@ cpu_read_cpu_model_name_arm64(Cpu *out)
 
   fclose(of);
 
-  return OK;
+  return ERR_OK;
 }
 
 int
@@ -198,7 +194,7 @@ cpu_get_cores_enabled_arm(Cpu *out)
   }
 
   out->cores = (u32)max_cpu;
-  return OK;
+  return ERR_OK;
 }
 
 int
@@ -214,7 +210,7 @@ cpu_read_arm64(Cpu *out)
   cpu_read_cpu_model_name_arm64(out);
   cpu_read_enabled_core_cpu_frequency(out, (int)out->cores);
 
-  return OK;
+  return ERR_OK;
 }
 
 int
@@ -265,7 +261,7 @@ cpu_read_amd64(Cpu *out)
   }
 
   fclose(f);
-  return OK;
+  return ERR_OK;
 }
 
 int
@@ -278,7 +274,7 @@ cpu_read(Cpu *out)
   }
 
 #if defined(__arm__) || defined(__aarch64__)
-  if (cpu_read_arm64(out) != OK)
+  if (cpu_read_arm64(out) != ERR_OK)
   {
     /**
 		 * Debugging!!
@@ -288,7 +284,7 @@ cpu_read(Cpu *out)
   }
 
 #elif defined(__i386__) || defined(__x86_64__)
-  if (cpu_read_amd64(out) != OK)
+  if (cpu_read_amd64(out) != ERR_OK)
   {
     /**
 		 * Debugging!!
@@ -300,7 +296,7 @@ cpu_read(Cpu *out)
 #else
 #error "Unsupported architecture"
 #endif
-  return OK;
+  return ERR_OK;
 }
 
 int
@@ -347,7 +343,7 @@ cpu_read_usage(Cpu *out)
   }
 
   fclose(f);
-  return OK;
+  return ERR_OK;
 }
 
 /*
@@ -367,7 +363,7 @@ ram_create(mem_arena *m)
  *
  * Reads MemTotal and MemFree from /proc/meminfo in kilobytes.
  *
- * Return: OK on success, AGENT_ERR_INVALID if out is NULL,
+ * Return: ERR_OK on success, AGENT_ERR_INVALID if out is NULL,
  *         ERR_IO if /proc/meminfo cannot be opened
  */
 int
@@ -431,7 +427,7 @@ ram_read(Ram *out)
 
   arena_destroy(temp_arena);
   fclose(f);
-  return OK;
+  return ERR_OK;
 }
 
 /*
@@ -453,11 +449,11 @@ disk_create(mem_arena *m)
  * numbers, block count, and device name for each partition. Skips the header
  * line and any malformed entries.
  *
- * Return: OK on success, AGENT_ERR_INVALID if out is NULL,
+ * Return: ERR_OK on success, AGENT_ERR_INVALID if out is NULL,
  *         ERR_IO if /proc/partitions cannot be opened
  */
 
-int
+local_internal int
 disk_read(Disk *out, mem_arena *arena)
 {
   if (!out)
@@ -477,7 +473,12 @@ disk_read(Disk *out, mem_arena *arena)
 
   while (fgets(buf, sizeof(buf), f))
   {
-    Partition p = { 0 };
+    Partition p = {
+      .major = 0,
+      .minor = 0,
+      .blocks = 0,
+      .name = {}
+    };
     char name[BUFFER_SIZE_DEFAULT];
 
     if (sscanf(buf,
@@ -501,16 +502,16 @@ disk_read(Disk *out, mem_arena *arena)
   }
 
   fclose(f);
-  return OK;
+  return ERR_OK;
 }
 
-FileSystem *
+local_internal FileSystem *
 fs_create(mem_arena *arena)
 {
   return (FileSystem *)arena_push(arena, sizeof(FileSystem), 1);
 }
 
-int
+local_internal int
 fs_read(char *path, FileSystem *fs)
 {
   struct statfs s;
@@ -531,7 +532,7 @@ fs_read(char *path, FileSystem *fs)
   fs->available = bavail * bsize;
   fs->used = (blocks - bfree) * bsize;
 
-  return OK;
+  return ERR_OK;
 }
 
 /*
@@ -539,7 +540,7 @@ fs_read(char *path, FileSystem *fs)
  *
  * Return: Pointer to newly allocated Device, or NULL on allocation failure
  */
-Device *
+local_internal Device *
 device_create(mem_arena *m)
 {
   return (Device *)arena_push(m, sizeof(Device), 1);
@@ -554,7 +555,7 @@ device_create(mem_arena *m)
  * as needed.
  */
 
-int
+local_internal int
 process_list_collect(Process_List *list, mem_arena *arena)
 {
   DIR *d = opendir("/proc");
@@ -607,7 +608,7 @@ process_list_collect(Process_List *list, mem_arena *arena)
   }
 
   closedir(d);
-  return OK;
+  return ERR_OK;
 }
 
 /**
@@ -622,7 +623,7 @@ struct Proces {
 
 */
 
-int
+local_internal int
 process_read(i32 pid, Process *out)
 {
   char path[PATH_MAX_LEN];
@@ -737,10 +738,10 @@ process_read(i32 pid, Process *out)
     return ERR_IO;
   }
 
-  return OK;
+  return ERR_OK;
 }
 
-int
+local_internal int
 device_up_time(Device *out)
 {
   if (!out)
@@ -770,7 +771,7 @@ device_up_time(Device *out)
   i64 hour = s % 86400 / 3600;
   i64 min = s % 3600 / 60;
   sprintf(out->uptime, "%ldd %ldh %ldm", day, hour, min);
-  return OK;
+  return ERR_OK;
 }
 
 /*
@@ -781,7 +782,7 @@ device_up_time(Device *out)
  * Reads OS version from /proc/version, uptime from /proc/uptime, and collects
  * all running process IDs from /proc directory.
  *
- * Return: OK on success, AGENT_ERR_INVALID if out is NULL,
+ * Return: ERR_OK on success, AGENT_ERR_INVALID if out is NULL,
  *         ERR_IO if required files cannot be opened
  */
 int
@@ -829,7 +830,7 @@ device_read(Device *out)
   fclose(version);
   device_up_time(out);
 
-  return OK;
+  return ERR_OK;
 }
 
 /*
@@ -839,12 +840,12 @@ device_read(Device *out)
  *
  * Wrapper around kill(2) system call with error handling.
  *
- * Return: OK on success,
+ * Return: ERR_OK on success,
  *         ERR_INVALID if pid is invalid or process not found,
  *         ERR_PERM if permission denied,
  *         ERR_IO for other errors
  */
-int
+local_internal int
 process_kill(pid_t pid, int signal)
 {
   if (pid <= 0)
@@ -869,5 +870,5 @@ process_kill(pid_t pid, int signal)
     assert(0);
     return ERR_IO;
   }
-  return OK;
+  return ERR_OK;
 }

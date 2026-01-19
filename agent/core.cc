@@ -1,8 +1,12 @@
-#include "libgrpc/grpc.h"
+#include <grpcpp/server_builder.h>
+#include <unistd.h>
+
+#include "agent_grpc/agent_grpc.h"
 
 int
-main(int argc, char **argv)
+main(void)
 {
-  run_server();
+
+  grpc_server_setup();
   return 0;
 }

@@ -16,7 +16,7 @@
  * TODO(nasr): reserve pages support
  * */
 
-internal mem_arena *
+local_internal mem_arena *
 arena_create(u64 capacity)
 {
   mem_arena *arena = (mem_arena *)mmap(0, capacity, PROT_READ | PROT_WRITE | PROT_EXEC,
@@ -32,14 +32,16 @@ arena_create(u64 capacity)
   return arena;
 }
 
-// make it a void pointer to allow implicit conversion
-internal void
+/*
+ * make it a void pointer to allow implicit conversion
+ * */
+local_internal void
 arena_destroy(mem_arena *arena)
 {
   munmap(arena, arena->capacity);
 }
 
-void *
+local_internal void *
 arena_push(mem_arena *arena, u64 size, b32 non_zero)
 {
   u64 pos_aligned = ALIGN_UP_POW2(arena->pos, ARENA_ALIGN);
@@ -52,7 +54,9 @@ arena_push(mem_arena *arena, u64 size, b32 non_zero)
   }
 
   arena->pos = new_pos;
-  // cast to u8 to be able to do pointer arithemtic
+  /*
+   * cast to u8 to be able to do pointer arithemtic
+   * */
   u8 *out = (u8 *)arena + pos_aligned;
 
   if (!non_zero)
@@ -62,21 +66,21 @@ arena_push(mem_arena *arena, u64 size, b32 non_zero)
   return out;
 }
 
-internal void
+local_internal void
 arena_pop(mem_arena *arena, u64 size)
 {
   size = MIN(size, arena->pos - ARENA_BASE_POS);
   arena->pos -= size;
 }
 
-internal void
+local_internal void
 arena_pop_to(mem_arena *arena, u64 pos)
 {
   u64 size = pos < arena->pos ? arena->pos - pos : 0;
   arena_pop(arena, size);
 }
 
-internal void
+local_internal void
 arena_clear(mem_arena *arena)
 {
   arena_pop_to(arena, ARENA_BASE_POS);
