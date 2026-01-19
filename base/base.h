@@ -23,7 +23,6 @@
 #define BUFFER_SIZE_LARGE 512
 #define PATH_MAX_LEN 4096
 
-
 #define DEPRECATED __attribute__((__deprecated__))
 
 typedef uint64_t u64;
@@ -54,5 +53,10 @@ is_numeric(char *s);
 
 local_internal b8
 compare_string(const char *c1, const char *c2);
+
+/*
+ * TODO(nasr): macro for verbose assertions
+ *
+ * */
 
 #endif

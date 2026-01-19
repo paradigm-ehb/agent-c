@@ -7,21 +7,24 @@
 #include "libres/resources.cc"
 
 #include <assert.h>
-#include <stdio.h>
 
+
+/* Test case:
+ * test if the retrieved disks aren't 0
+ * */
 local_internal void
-disk_tests()
+test_cpu_name()
 {
   mem_arena *arena = arena_create(MiB(8));
+  Cpu *cpu = cpu_create(arena);
 
-  Disk *disk = disk_create(arena);
-  disk_read(disk, arena);
+  cpu_read(cpu);
 
-  printf("disk values %lu", disk->part_count);
+  assert((cpu->cores != 0) && "Failed to retrieve partition count");
 }
 
 int
 main()
 {
-  disk_tests();
+  test_cpu_name();
 }

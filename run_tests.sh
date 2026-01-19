@@ -7,12 +7,12 @@ if [ ! -d "./$OUT" ]; then
   echo "building out directory for tests"
   mkdir ./$OUT
 else
-  echo "$OUT does exist."
+  echo "$OUT found."
 fi
 
 for file in ./tests/*.cc; do
   if [ ! -e "$file" ]; then
-    echo "no .cc files found"
+    echo -e "\e[31mno .cc files fount\e[0m"
     break
   fi
 
@@ -21,9 +21,12 @@ for file in ./tests/*.cc; do
   $CC "$file" $FLAGS -o "./$OUT/$BASE"
 
   if [ $? -eq 0 ]; then
-    echo "compiled successfully and running... $BASE"
+    echo -e "Compiled successfully and running \e[36m[$BASE]"
     "./$OUT/$BASE"
+    if [ $? -eq 0 ]; then
+      echo -e "\e[0m\e[42mTests passed successfully!\e[0m"
+    fi
   else
-    echo "failed to compile $BASE"
+   echo -e "\e[31mFailed to compile\e[0m"
   fi
 done
