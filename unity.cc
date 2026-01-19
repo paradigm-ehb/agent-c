@@ -4,7 +4,7 @@
 #include "journal/journald.c"
 #include "libnet/net.c"
 #include "libres/resources.cc"
-#include "libvm/qc.c"
+// #include "libvm/qc.c"
 #include "auth/auth.cc"
 #include "dbus/dbushandler.cc"
 #include "grpc_server/server.cc"
@@ -17,7 +17,7 @@
 #endif
 /*
  * TODO(nasr): c++ versioning issue
- * */
+ */
 /*
 #include "libpkg/pkg.c"
 #include "libpkg/distro/arch_pac.cc"
