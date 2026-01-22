@@ -20,7 +20,7 @@ test_partition_count()
   Disk *disk = disk_create(arena);
   disk_read(disk, arena);
 
-  test_assert((disk->part_count != 0) && "Failed to retrieve partition count");
+  test((disk->part_count != 0) && "Failed to retrieve partition count");
 
 }
 
@@ -36,7 +36,7 @@ test_partition_creation()
   Disk *disk = disk_create(arena);
   disk_read(disk, arena);
 
-  test_assert((disk->partitions != NULL));
+  test((disk->partitions != NULL));
 }
 
 /*
@@ -51,7 +51,7 @@ test_partition_capacity_bigger_then_count()
   Disk *disk = disk_create(arena);
   disk_read(disk, arena);
 
-  test_assert((disk->part_capacity >= disk->part_count));
+  test((disk->part_capacity >= disk->part_count));
 }
 
 /*

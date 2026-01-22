@@ -16,7 +16,7 @@ test_cpu_create()
   mem_arena *arena = arena_create(MiB(1));
   Cpu *cpu = cpu_create(arena);
 
-  test_assert(cpu != NULL);
+  test(cpu != NULL);
 }
 
 local_internal void
@@ -25,7 +25,7 @@ test_cpu_read_returns_ok()
   mem_arena *arena = arena_create(MiB(4));
   Cpu *cpu = cpu_create(arena);
 
-  test_assert(cpu_read(cpu) == ERR_OK);
+  test(cpu_read(cpu) == ERR_OK);
 }
 
 local_internal void
@@ -36,7 +36,7 @@ test_cpu_model_present()
 
   cpu_read(cpu);
 
-  test_assert(cpu->model[0] != '\0');
+  test(cpu->model[0] != '\0');
 }
 
 local_internal void
@@ -47,7 +47,7 @@ test_cpu_cores_positive()
 
   cpu_read(cpu);
 
-  test_assert(cpu->cores > 0);
+  test(cpu->cores > 0);
 }
 
 local_internal void
@@ -58,7 +58,7 @@ test_cpu_frequency_present()
 
   cpu_read(cpu);
 
-  test_assert(cpu->frequency[0] != '\0');
+  test(cpu->frequency[0] != '\0');
 }
 
 local_internal void
@@ -67,7 +67,7 @@ test_cpu_usage_read()
   mem_arena *arena = arena_create(MiB(4));
   Cpu *cpu = cpu_create(arena);
 
-  test_assert(cpu_read_usage(cpu) == ERR_OK);
+  test(cpu_read_usage(cpu) == ERR_OK);
 }
 
 local_internal void
@@ -78,8 +78,8 @@ test_cpu_usage_values_valid()
 
   cpu_read_usage(cpu);
 
-  test_assert(cpu->total_time > 0);
-  test_assert(cpu->idle_time <= cpu->total_time);
+  test(cpu->total_time > 0);
+  test(cpu->idle_time <= cpu->total_time);
 }
 
 local_internal void
@@ -98,8 +98,8 @@ test_cpu_usage_monotonic()
   u64 total2 = cpu->total_time;
   u64 idle2  = cpu->idle_time;
 
-  test_assert(total2 >= total1);
-  test_assert(idle2  >= idle1);
+  test(total2 >= total1);
+  test(idle2  >= idle1);
 }
 
 local_internal void
@@ -115,14 +115,14 @@ test_cpu_read_idempotent()
 
   cpu_read(cpu);
 
-  test_assert(strcmp(cpu->model, model_copy) == 0);
+  test(strcmp(cpu->model, model_copy) == 0);
 }
 
 local_internal void
 test_cpu_read_null()
 {
 #ifdef DEBUG
-  test_assert(cpu_read(NULL) == ERR_INVALID);
+  test(cpu_read(NULL) == ERR_INVALID);
 #endif
 }
 
@@ -135,7 +135,7 @@ test_cpu_vendor_present()
 
   cpu_read(cpu);
 
-  test_assert(cpu->vendor[0] != '\0');
+  test(cpu->vendor[0] != '\0');
 #endif
 }
 
