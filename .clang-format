@@ -55,15 +55,18 @@ SpacesInAngles: false
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
 
+BinPackParameters: AlwaysOnePerLine
+BinPackArguments: false
+AlignAfterOpenBracket: BlockIndent
+
 PointerAlignment: Right
 DerivePointerAlignment: false
 
 # Alignment (explicitly disabled)
-AlignAfterOpenBracket: DontAlign
-AlignOperands: false
-AlignTrailingComments: false
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
+AlignOperands: true
+AlignTrailingComments: true
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
 AlignEscapedNewlines: DontAlign
 
 # Comments

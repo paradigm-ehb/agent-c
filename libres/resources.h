@@ -1,6 +1,5 @@
 #ifndef RESOURCES_H
 #define RESOURCES_H
-
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -47,12 +46,12 @@ typedef enum Process_State
 
 struct Process
 {
-  i32 pid;
-  Process_State state;
+  char name[BUFFER_SIZE_SMALL];
   u64 utime;
   u64 stime;
+  i32 pid;
   u32 num_threads;
-  char name[BUFFER_SIZE_SMALL];
+  Process_State state;
 };
 
 struct Process_List
@@ -132,9 +131,6 @@ struct Device
   char os_version[BUFFER_SIZE_DEFAULT];
   char uptime[BUFFER_SIZE_DEFAULT];
   Process_List processes;
-  /**
-   *
-   * */
   struct Port *port;
 };
 

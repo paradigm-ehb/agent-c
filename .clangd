@@ -5,7 +5,7 @@ CompileFlags:
     - --gcc-toolchain=/usr
     - -std=c++17
     - -I/home/nasr/agent-c
-    - -I/home/nasr/agent-c/gen
+    - -I/home/nasr/agent-c/grpc/generated
     - -Wall
     - -Wextra
     - -Wno-unused-function

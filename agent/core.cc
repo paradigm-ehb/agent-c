@@ -1,8 +1,4 @@
-#include <grpcpp/server_builder.h>
-#include <unistd.h>
-
-#include "grpc_server/server.h"
-
+#include "grpc/grpc_include.h"
 
 int
 main(void)

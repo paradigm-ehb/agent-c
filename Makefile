@@ -4,7 +4,8 @@ CC  := gcc
 
 # Paths
 SRC_DIR   := .
-GEN_DIR   := gen
+GEN_DIR   := grpc/generated
+
 BUILD_DIR := build
 
 TARGET := $(BUILD_DIR)/agent

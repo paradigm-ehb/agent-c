@@ -5,8 +5,8 @@ set -euo pipefail
 # Protobuf / gRPC code generation
 
 # Directories
-PROTO_DIR="proto"
-OUT_DIR="gen"
+PROTO_DIR="grpc/proto"
+OUT_DIR="grpc/generated"
 
 # Locate protoc (FORCE system version, ignore ~/.local/bin)
 PROTOC="/usr/bin/protoc"  # Explicitly use system protoc

@@ -67,3 +67,4 @@ tmp
 *.json
 gen
 temp
+grpc/generated
