@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stddef.h>
 
 /* assert an expression and output the file and the line */
 
@@ -30,7 +31,7 @@
 #define check(expr) \
     if (!(expr)) \
         fprintf(stderr, RED " [ERROR] %s:%d: expr:%s test:%s\n" RESET, __FILE__, __LINE__, #expr, __func__); \
-    _exit(0);
+    _exit(1);
 
 #define global_variable static
 #define local_persist static
@@ -41,10 +42,13 @@
 #define ERR_PARSE 2
 #define ERR_PERM 3
 #define ERR_INVALID 4
+#define null NULL
 
 #define KiB(n) (((u64)(n)) << 10)
 #define MiB(n) (((u64)(n)) << 20)
 #define GiB(n) (((u64)(n)) << 30)
+
+#define unused(x) (void)(x)
 
 /*
  *
@@ -89,6 +93,7 @@ is_numeric(char *s);
 local_internal b8
 compare_string(const char *c1, const char *c2);
 
-/* TODO(nasr): macro for verbose assertions */
+local_internal inline u64
+align_up_pow(u64 n, u64 p);
 
 #endif

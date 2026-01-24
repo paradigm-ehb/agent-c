@@ -46,15 +46,22 @@ LDFLAGS := \
 SOURCES := \
 	unity.cc
 
+# Quiet / verbose toggle
+ifndef VERBOSE
+Q := @
+endif
+
 # Rules
 all: $(TARGET)
-	./$(TARGET)
+
+run: $(TARGET)
+	$(Q)./$(TARGET)
 
 $(TARGET): $(SOURCES)
-	@mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+	$(Q)mkdir -p $(BUILD_DIR)
+	$(Q)$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 clean:
-	rm -rf $(BUILD_DIR)
+	$(Q)rm -rf $(BUILD_DIR)
 
-.PHONY: all clean
+.PHONY: all run clean

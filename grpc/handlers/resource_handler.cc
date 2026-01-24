@@ -17,7 +17,9 @@ local_internal grpc::Status
                GetSystemResourcesReply                       *resp)
 {
     /* NOTE(nasr): for the general get_resources we don't take in any parameters*/
-    (void)req;
+    unused(req);
+
+    printf("call got make\n");
 
     if (ctx->IsCancelled())
     {
@@ -34,12 +36,12 @@ local_internal grpc::Status
         "deadline exceeded");
     }
 
-    mem_arena *temp_arena = arena_create(MiB(8));
+    global_arena *temp_arena = arena_create(MiB(8));
 
-    Cpu    *internal_cpu    = cpu_create(temp_arena);
-    Ram    *internal_ram    = ram_create(temp_arena);
-    Disk   *internal_disk   = disk_create(temp_arena);
-    Device *internal_device = device_create(temp_arena);
+    cpu    *internal_cpu    = cpu_create(temp_arena);
+    memory *internal_ram    = ram_create(temp_arena);
+    disk   *internal_disk   = disk_create(temp_arena);
+    device *internal_device = device_create(temp_arena);
 
     /*
    * TODO(nasr): find a way to cleanup this deadline mess
@@ -124,7 +126,7 @@ local_internal grpc::Status
                const resources::v3::GetCpuRequest *req,
                resources::v3::GetCpuReply         *resp)
 {
-    (void)req;
+    unused(req);
 
     if (ctx->IsCancelled())
     {
@@ -141,9 +143,9 @@ local_internal grpc::Status
         "deadline exceeded");
     }
 
-    mem_arena *temp_arena = arena_create(MiB(8));
+    global_arena *temp_arena = arena_create(MiB(8));
 
-    Cpu *internal_cpu = cpu_create(temp_arena);
+    cpu *internal_cpu = cpu_create(temp_arena);
 
     /*
    * TODO(nasr): find a way to cleanup this deadline mess
@@ -174,7 +176,7 @@ local_internal grpc::Status
                const resources::v3::GetMemoryRequest *req,
                resources::v3::GetMemoryReply         *resp)
 {
-    (void)req;
+    unused(req);
 
     if (ctx->IsCancelled())
     {
@@ -191,9 +193,9 @@ local_internal grpc::Status
         "deadline exceeded");
     }
 
-    mem_arena *temp_arena = arena_create(MiB(8));
+    global_arena *temp_arena = arena_create(MiB(8));
 
-    Ram *internal_ram = ram_create(temp_arena);
+    memory *internal_ram = ram_create(temp_arena);
 
     /*
    * TODO(nasr): find a way to cleanup this deadline mess
@@ -210,16 +212,20 @@ local_internal grpc::Status
     ram_msg->set_total(internal_ram->total);
     ram_msg->set_free(internal_ram->free);
 
+
     arena_destroy(temp_arena);
 
     return grpc::Status::OK;
 }
 
 local_internal grpc::Status
-               get_device_impl(grpc::ServerContext      *ctx,
+               get_device_impl(grpc::ServerContext   *ctx,
                const resources::v3::GetDeviceRequest *req,
                resources::v3::GetDeviceReply         *resp)
 {
+    unused(req);
+    unused(ctx);
+    unused(resp);
 
-
+    return grpc::Status::OK;
 }

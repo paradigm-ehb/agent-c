@@ -9,59 +9,47 @@
 
 #define RESOURCES_API_VERSION 1
 
-typedef struct Cpu        Cpu;
-typedef struct Ram        Ram;
-typedef struct Disk       Disk;
-typedef struct Device     Device;
-typedef struct FileSystem FileSystem;
+typedef struct sys_cpu          cpu;
+typedef struct sys_memory       memory;
+typedef struct sys_disk         disk;
+typedef struct sys_device       device;
+typedef struct sys_filesystem   fs;
+typedef struct sys_partition    partition;
+typedef struct sys_process      proc;
+typedef struct sys_process_list proc_list;
 
-typedef struct Partition    Partition;
-typedef struct Process      Process;
-typedef struct Process_List Process_List;
-
-/**
- * TODO(nasr):
- *
- * Heh? what are you doing with the types here,
- * you mismatched the namings
- * check for what you are doing in the cgo wrapper
- * this could be a big issue
- *
- * */
-typedef int32_t ProcessState;
-
-typedef enum Process_State
+typedef enum
 {
-    PROCESS_UNDEFINED       = 0,
-    PROCESS_RUNNING         = 1,
-    PROCESS_SLEEPING        = 2,
-    PROCESS_DISK_SLEEP      = 3,
-    PROCESS_STOPPED         = 4,
-    PROCESS_TRACING_STOPPED = 5,
-    PROCESS_ZOMBIE          = 6,
-    PROCESS_DEAD            = 7,
-    PROCESS_IDLE            = 8,
+    proc_undefined       = 0,
+    proc_running         = 1,
+    proc_sleeping        = 2,
+    proc_disk_sleeping   = 3,
+    proc_stopped         = 4,
+    proc_tracing_stopped = 5,
+    proc_zombie          = 6,
+    proc_dead            = 7,
+    proc_idle            = 8,
 
-} Process_State;
+} sys_proc_state;
 
-struct Process
+struct sys_process
 {
     char          name[BUFFER_SIZE_SMALL];
     u64           utime;
     u64           stime;
     i32           pid;
     u32           num_threads;
-    Process_State state;
+    sys_proc_state state;
 };
 
-struct Process_List
+struct sys_process_list
 {
-    Process *items;
-    size_t   count;
-    size_t   capacity;
+    proc *items;
+    umm      count;
+    umm      capacity;
 };
 
-struct Partition
+struct sys_partition
 {
     u64  major;
     u64  minor;
@@ -69,23 +57,23 @@ struct Partition
     char name[BUFFER_SIZE_SMALL];
 };
 
-struct Cpu
+struct sys_cpu
 {
-    char vendor[BUFFER_SIZE_DEFAULT];
-    char model[BUFFER_SIZE_DEFAULT];
-    char frequency[BUFFER_SIZE_SMALL];
     u64  total_time;
     u64  idle_time;
     u32  cores;
+    char vendor[BUFFER_SIZE_DEFAULT];
+    char model[BUFFER_SIZE_DEFAULT];
+    char frequency[BUFFER_SIZE_SMALL];
 };
 
-struct Ram
+struct sys_memory
 {
     u64 total;
     u64 free;
 };
 
-struct FileSystem
+struct sys_filesystem
 {
     u64 total;
     u64 free;
@@ -93,9 +81,9 @@ struct FileSystem
     u64 used;
 };
 
-struct Disk
+struct sys_disk
 {
-    Partition *partitions;
+    partition *partitions;
 
     size_t part_count;
     size_t part_capacity;
@@ -126,70 +114,70 @@ struct Port
     char                    comment[BUFFER_SIZE_DEFAULT];
 };
 
-struct Device
+struct sys_device
 {
     char         os_version[BUFFER_SIZE_DEFAULT];
     char         uptime[BUFFER_SIZE_DEFAULT];
-    Process_List processes;
+    proc_list processes;
     struct Port *port;
 };
 
-local_internal Cpu *
-cpu_create(mem_arena *arena);
+local_internal cpu *
+cpu_create(global_arena *arena);
 
 local_internal int
-cpu_read(Cpu *out);
+cpu_read(cpu *out);
 
 local_internal int
-cpu_read_arm64(Cpu *out);
+cpu_read_arm64(cpu *out);
 
 local_internal int
-cpu_read_amd64(Cpu *out);
+cpu_read_amd64(cpu *out);
 
 local_internal int
-cpu_read_usage(Cpu *out);
+cpu_read_usage(cpu *out);
 
 local_internal int
-cpu_get_cores_enabled_arm(Cpu *out);
+cpu_get_cores_enabled_arm(cpu *out);
 
 local_internal int
-cpu_read_cpu_model_name_arm64(Cpu *out);
+cpu_read_cpu_model_name_arm64(cpu *out);
 
 local_internal int
-cpu_read_enabled_core_cpu_frequency(Cpu *out, int enabled_cpu_count);
+cpu_read_enabled_core_cpu_frequency(cpu *out, int enabled_cpu_count);
 
-local_internal Ram *
-ram_create(mem_arena *arena);
-
-local_internal int
-ram_read(Ram *out);
-
-local_internal Disk *
-disk_create(mem_arena *arena);
+local_internal memory *
+ram_create(global_arena *arena);
 
 local_internal int
-disk_read(Disk *out, mem_arena *arena);
+ram_read(memory *out);
 
-local_internal FileSystem *
-fs_create(mem_arena *arena);
-
-local_internal int
-fs_read(char *path, FileSystem *fs);
-
-local_internal Device *
-device_create(mem_arena *arena);
+local_internal disk *
+disk_create(global_arena *arena);
 
 local_internal int
-device_read(Device *out);
+disk_read(disk *out, global_arena *arena);
+
+local_internal fs *
+fs_create(global_arena *arena);
 
 local_internal int
-device_up_time(Device *out);
+fs_read(char *path, fs *fs);
+
+local_internal device *
+device_create(global_arena *arena);
 
 local_internal int
-process_list_collect(Process_List *list, mem_arena *arena);
+device_read(device *out);
 
 local_internal int
-process_read(int32_t pid, Process *out);
+device_up_time(device *out);
+
+local_internal int
+process_list_collect(proc_list *list, global_arena *arena);
+
+local_internal int
+process_read(int32_t pid, proc *out);
 
 local_internal int
 process_kill(pid_t pid, int signal);

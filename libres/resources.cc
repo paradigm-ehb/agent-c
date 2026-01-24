@@ -23,19 +23,19 @@
  */
 
 local_internal void
-disk_push_partition(Disk *d, Partition p, mem_arena *arena)
+disk_push_partition(disk *d, partition p, mem_arena *arena)
 {
     if (d->part_count == d->part_capacity)
     {
         size_t new_cap = d->part_capacity ? d->part_capacity * 2 : 8;
 
-        Partition *np = PUSH_ARRAY_NZ(arena, Partition, new_cap);
+        partition *np = PUSH_ARRAY_NZ(arena, partition, new_cap);
         if (!np)
             return;
 
         if (d->partitions && d->part_count > 0)
         {
-            memcpy(np, d->partitions, d->part_count * sizeof(Partition));
+            memcpy(np, d->partitions, d->part_count * sizeof(partition));
         }
 
         d->partitions    = np;
@@ -50,10 +50,10 @@ disk_push_partition(Disk *d, Partition p, mem_arena *arena)
  *
  * Return: Pointer to newly allocated Cpu, or NULL on allocation failure
  */
-local_internal Cpu *
+local_internal cpu *
 cpu_create(mem_arena *m)
 {
-    return (Cpu *)arena_push(m, sizeof(Cpu), 1);
+    return (cpu *)arena_push(m, sizeof(cpu), 1);
 }
 
 /*
@@ -75,7 +75,7 @@ cpu_create(mem_arena *m)
  *
  * */
 int
-cpu_read_enabled_core_cpu_frequency(Cpu *out, int enabled_cpu_count)
+cpu_read_enabled_core_cpu_frequency(cpu *out, int enabled_cpu_count)
 {
     if (!out)
     {
@@ -111,7 +111,7 @@ cpu_read_enabled_core_cpu_frequency(Cpu *out, int enabled_cpu_count)
 }
 
 int
-cpu_read_cpu_model_name_arm64(Cpu *out)
+cpu_read_cpu_model_name_arm64(cpu *out)
 {
     FILE *of = fopen("/proc/device-tree/model", "rb");
     if (!of)
@@ -152,7 +152,7 @@ cpu_read_cpu_model_name_arm64(Cpu *out)
 }
 
 int
-cpu_get_cores_enabled_arm(Cpu *out)
+cpu_get_cores_enabled_arm(cpu *out)
 {
     assert(out);
 
@@ -192,7 +192,7 @@ cpu_get_cores_enabled_arm(Cpu *out)
 }
 
 int
-cpu_read_arm64(Cpu *out)
+cpu_read_arm64(cpu *out)
 {
     if (!out)
     {
@@ -208,7 +208,7 @@ cpu_read_arm64(Cpu *out)
 }
 
 int
-cpu_read_amd64(Cpu *out)
+cpu_read_amd64(cpu *out)
 {
     if (!out)
     {
@@ -259,7 +259,7 @@ cpu_read_amd64(Cpu *out)
 }
 
 int
-cpu_read(Cpu *out)
+cpu_read(cpu *out)
 {
     if (!out)
     {
@@ -294,7 +294,7 @@ cpu_read(Cpu *out)
 }
 
 int
-cpu_read_usage(Cpu *out)
+cpu_read_usage(cpu  *out)
 {
     if (!out)
     {
@@ -345,10 +345,10 @@ cpu_read_usage(Cpu *out)
  *
  * Return: Pointer to newly allocated Ram, or NULL on allocation failure
  */
-Ram *
+ memory *
 ram_create(mem_arena *m)
 {
-    return (Ram *)arena_push(m, sizeof(Ram), 1);
+    return (memory *)arena_push(m, sizeof(memory), 1);
 }
 
 /*
@@ -361,7 +361,7 @@ ram_create(mem_arena *m)
  *         ERR_IO if /proc/meminfo cannot be opened
  */
 int
-ram_read(Ram *out)
+ram_read(memory *out)
 {
     if (!out)
     {
@@ -429,10 +429,10 @@ ram_read(Ram *out)
  *
  * Return: Pointer to newly allocated Disk, or NULL on allocation failure
  */
-Disk *
+disk *
 disk_create(mem_arena *m)
 {
-    return (Disk *)arena_push(m, sizeof(Disk), 1);
+    return (disk *)arena_push(m, sizeof(disk), 1);
 }
 
 /*
@@ -448,7 +448,7 @@ disk_create(mem_arena *m)
  */
 
 local_internal int
-disk_read(Disk *out, mem_arena *arena)
+disk_read(disk *out, mem_arena *arena)
 {
     if (!out)
     {
@@ -467,7 +467,7 @@ disk_read(Disk *out, mem_arena *arena)
 
     while (fgets(buf, sizeof(buf), f))
     {
-        Partition p = {
+        partition p = {
         .major  = 0,
         .minor  = 0,
         .blocks = 0,
@@ -493,14 +493,14 @@ disk_read(Disk *out, mem_arena *arena)
     return ERR_OK;
 }
 
-local_internal FileSystem *
+local_internal fs *
 fs_create(mem_arena *arena)
 {
-    return (FileSystem *)arena_push(arena, sizeof(FileSystem), 1);
+    return (fs *)arena_push(arena, sizeof(fs), 1);
 }
 
 local_internal int
-fs_read(char *path, FileSystem *fs)
+fs_read(char *path, fs *fs)
 {
     struct statfs s;
     if (statfs(path, &s) != 0)
@@ -528,10 +528,10 @@ fs_read(char *path, FileSystem *fs)
  *
  * Return: Pointer to newly allocated Device, or NULL on allocation failure
  */
-local_internal Device *
+local_internal device *
 device_create(mem_arena *m)
 {
-    return (Device *)arena_push(m, sizeof(Device), 1);
+    return (device *)arena_push(m, sizeof(device), 1);
 }
 
 /*
@@ -544,7 +544,7 @@ device_create(mem_arena *m)
  */
 
 local_internal int
-process_list_collect(Process_List *list, mem_arena *arena)
+process_list_collect(proc_list *list, mem_arena *arena)
 {
     DIR *d = opendir("/proc");
     if (!d)
@@ -559,7 +559,7 @@ process_list_collect(Process_List *list, mem_arena *arena)
     {
         list->capacity = 8;
         list->count    = 0;
-        list->items    = PUSH_ARRAY_NZ(arena, Process, list->capacity);
+        list->items    = PUSH_ARRAY_NZ(arena, proc, list->capacity);
         if (!list->items)
         {
             closedir(d);
@@ -576,19 +576,19 @@ process_list_collect(Process_List *list, mem_arena *arena)
         if (list->count == list->capacity)
         {
             size_t   new_cap = list->capacity * 2;
-            Process *np      = PUSH_ARRAY_NZ(arena, Process, new_cap);
+            proc *np      = PUSH_ARRAY_NZ(arena, proc, new_cap);
             if (!np)
                 break;
 
-            memcpy(np, list->items, sizeof(Process) * list->capacity);
+            memcpy(np, list->items, sizeof(proc) * list->capacity);
             list->items    = np;
             list->capacity = new_cap;
         }
 
-        Process *p = &list->items[list->count++];
+        proc *p = &list->items[list->count++];
 
         p->pid         = atoi(e->d_name);
-        p->state       = PROCESS_UNDEFINED;
+        p->state       = proc_undefined;
         p->utime       = 0;
         p->stime       = 0;
         p->num_threads = 0;
@@ -612,7 +612,7 @@ struct Proces {
 */
 
 local_internal int
-process_read(i32 pid, Process *out)
+process_read(i32 pid, proc *out)
 {
     char path[PATH_MAX_LEN];
     snprintf(path, sizeof(path), "/proc/%d/status", pid);
@@ -668,47 +668,47 @@ process_read(i32 pid, Process *out)
             {
                 case 'R':
                 {
-                    out->state = PROCESS_RUNNING;
+                    out->state = proc_running;
                     break;
                 }
                 case 'S':
                 {
-                    out->state = PROCESS_SLEEPING;
+                    out->state = proc_sleeping;
                     break;
                 }
                 case 'D':
                 {
-                    out->state = PROCESS_DISK_SLEEP;
+                    out->state = proc_disk_sleeping;
                     break;
                 }
                 case 'T':
                 {
-                    out->state = PROCESS_STOPPED;
+                    out->state = proc_sleeping;
                     break;
                 }
                 case 't':
                 {
-                    out->state = PROCESS_TRACING_STOPPED;
+                    out->state = proc_tracing_stopped;
                     break;
                 }
                 case 'Z':
                 {
-                    out->state = PROCESS_ZOMBIE;
+                    out->state = proc_zombie;
                     break;
                 }
                 case 'X':
                 {
-                    out->state = PROCESS_DEAD;
+                    out->state = proc_dead;
                     break;
                 }
                 case 'I':
                 {
-                    out->state = PROCESS_IDLE;
+                    out->state = proc_idle;
                     break;
                 }
                 default:
                 {
-                    out->state = PROCESS_UNDEFINED;
+                    out->state = proc_undefined;
                     break;
                 }
             }
@@ -730,7 +730,7 @@ process_read(i32 pid, Process *out)
 }
 
 local_internal int
-device_up_time(Device *out)
+device_up_time(device *out)
 {
     if (!out)
     {
@@ -774,7 +774,7 @@ device_up_time(Device *out)
  *         ERR_IO if required files cannot be opened
  */
 int
-device_read(Device *out)
+device_read(device *out)
 {
     if (!out)
     {

@@ -24,6 +24,21 @@ parse_u64(char *buf, size_t len)
     return value;
 }
 
+
+local_internal inline u64
+align_up_pow(u64 n, u64 p)
+{
+  /*
+   * TODO(nasr): there is bug here grrr
+   * were checking if the memory is aligned but the function
+   * is used to align the memory
+   * make a seperate function that checks for that alignment
+   * check(p && ((p & (p - 1)) == 0));
+   * */
+  return (n + (p - 1)) & ~(p - 1);
+}
+
+
 /*
  * is_numeric - Check if a string contains only digits
  * @s: String to check
@@ -66,3 +81,4 @@ compare_string(const char *c1, const char *c2)
 
     return 0;
 }
+

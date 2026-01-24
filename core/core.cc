@@ -4,7 +4,7 @@
 int
 main(void)
 {
-    printf("running");
+  printf("entry point\n");
     grpc_server_setup();
     return 0;
 }

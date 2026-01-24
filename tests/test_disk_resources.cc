@@ -16,7 +16,7 @@ test_partition_count()
 {
     mem_arena *arena = arena_create(MiB(8));
 
-    Disk *disk = disk_create(arena);
+    disk *disk = disk_create(arena);
     disk_read(disk, arena);
 
     test((disk->part_count != 0) && "Failed to retrieve partition count");
@@ -31,7 +31,7 @@ test_partition_creation()
 {
     mem_arena *arena = arena_create(MiB(8));
 
-    Disk *disk = disk_create(arena);
+    disk *disk = disk_create(arena);
     disk_read(disk, arena);
 
     test((disk->partitions != NULL));
@@ -46,7 +46,7 @@ test_partition_capacity_bigger_then_count()
 {
     mem_arena *arena = arena_create(MiB(8));
 
-    Disk *disk = disk_create(arena);
+    disk *disk = disk_create(arena);
     disk_read(disk, arena);
 
     test((disk->part_capacity >= disk->part_count));
@@ -61,7 +61,7 @@ test_individual_partition_non_null()
 {
     mem_arena *arena = arena_create(MiB(8));
 
-    Disk *disk = disk_create(arena);
+    disk *disk = disk_create(arena);
     disk_read(disk, arena);
 
     for (

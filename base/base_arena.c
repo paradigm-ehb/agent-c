@@ -15,17 +15,18 @@
 /* TODO(nasr): reserve pages support */
 /* TODO(nasr): check if an arena has been used before */
 
-local_internal mem_arena *
+local_internal global_arena *
 arena_create(u64 capacity)
 {
-    mem_arena *arena = (mem_arena *)mmap(0, capacity, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    global_arena *arena = (global_arena *)mmap(0, capacity, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     if (arena == MAP_FAILED)
     {
         return NULL;
     }
 
     arena->capacity = capacity;
-    arena->pos      = ARENA_BASE_POS;
+    arena->pos      = sizeof(*arena);
+    arena->prev_pos = sizeof(*arena);
 
     return arena;
 }
@@ -34,13 +35,13 @@ arena_create(u64 capacity)
  * make it a void pointer to allow implicit conversion
  * */
 local_internal void
-arena_destroy(mem_arena *arena)
+arena_destroy(global_arena *arena)
 {
     munmap(arena, arena->capacity);
 }
 
 local_internal void *
-arena_push(mem_arena *arena, u64 size, b32 non_zero)
+arena_push(global_arena *arena, u64 size, b32 non_zero)
 {
     u64 pos_aligned = ALIGN_UP_POW2(arena->pos, ARENA_ALIGN);
     u64 new_pos     = pos_aligned + size;
@@ -65,21 +66,40 @@ arena_push(mem_arena *arena, u64 size, b32 non_zero)
 }
 
 local_internal void
-arena_pop(mem_arena *arena, u64 size)
+arena_pop(global_arena *arena, u64 size)
 {
-    size = MIN(size, arena->pos - ARENA_BASE_POS);
+    size = MIN(size, arena->pos - sizeof(*arena));
     arena->pos -= size;
 }
 
 local_internal void
-arena_pop_to(mem_arena *arena, u64 pos)
+arena_pop_to(global_arena *arena, u64 pos)
 {
     u64 size = pos < arena->pos ? arena->pos - pos : 0;
     arena_pop(arena, size);
 }
 
 local_internal void
-arena_clear(mem_arena *arena)
+arena_clear(global_arena *arena)
 {
-    arena_pop_to(arena, ARENA_BASE_POS);
+    arena_pop_to(arena, sizeof(*arena));
+}
+
+local_internal temp_arena
+temp_arena_begin(mem_arena *arena)
+{
+  temp_arena temp;
+  temp.arena = arena;
+  temp.prev_offset = arena->prev_pos;
+  temp.offset = arena->pos;
+
+  return temp;
+}
+
+local_internal void
+temp_arena_end(temp_arena temp)
+{
+	temp.arena->prev_pos = temp.prev_offset;
+	temp.arena->pos = temp.offset;
+
 }

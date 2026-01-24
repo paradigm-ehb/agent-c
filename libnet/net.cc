@@ -14,7 +14,7 @@
  * */
 
 local_internal i8
-port_read_tcp4(Device *device)
+port_read_tcp4(device *device)
 {
     char endofline[] = "\n";
     if (!device)
@@ -22,7 +22,7 @@ port_read_tcp4(Device *device)
         return ERR_INVALID;
     }
 
-    mem_arena *temp_arena = arena_create(KiB(8));
+    global_arena *temp_arena = arena_create(KiB(8));
 
     char *buffer;
     int   file = open("/etc/tcp", O_RDONLY);
@@ -43,14 +43,14 @@ port_read_tcp4(Device *device)
 }
 
 local_internal i8
-port_read_tcp6(Device *device)
+port_read_tcp6(device *device)
 {
     if (!device)
     {
         return ERR_INVALID;
     }
 
-    mem_arena *temp_arena = arena_create(KiB(8));
+    global_arena *temp_arena = arena_create(KiB(8));
 
     char *buffer;
     int   file = open("/etc/tcp6", O_RDONLY);

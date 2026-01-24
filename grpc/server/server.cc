@@ -1,4 +1,5 @@
 
+#include <cstdio>
 #include <memory>
 
 #include "grpc/grpc_include.h"
@@ -22,8 +23,7 @@ public:
   GetSystemResources(
     grpc::ServerContext                            *ctx,
     const resources::v3::GetSystemResourcesRequest *req,
-    resources::v3::GetSystemResourcesReply         *reply
-  ) override;
+    resources::v3::GetSystemResourcesReply         *reply) override;
 
   grpc::Status
   GetCpu(
@@ -74,6 +74,7 @@ ResourcesServiceImpl::GetMemory(
 local_internal void
 grpc_server_setup(void)
 {
+  printf("server setup\n");
   ResourcesServiceImpl service;
 
   const char *server_address = "0.0.0.0:5000";

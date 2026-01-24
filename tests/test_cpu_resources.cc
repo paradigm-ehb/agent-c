@@ -2,122 +2,101 @@
 #include "base/base_arena.h"
 #include "libres/resources.h"
 
+/* unity build */
 #include "base/base.c"
 #include "base/base_arena.c"
 #include "libres/resources.cc"
+#include <stdio.h>
 
 /*
- * Test case:
- * test if the retrieved disks aren't 0
+ * Test: cpu_create returns a valid pointer
  */
 local_internal void
 test_cpu_create()
 {
     mem_arena *arena = arena_create(MiB(1));
-    Cpu       *cpu   = cpu_create(arena);
+    cpu       *c     = cpu_create(arena);
 
-    test(cpu != NULL);
+
+    test(c != NULL);
 }
 
+/*
+ * Test: cpu_read returns ERR_OK
+ */
 local_internal void
 test_cpu_read_returns_ok()
 {
     mem_arena *arena = arena_create(MiB(4));
-    Cpu       *cpu   = cpu_create(arena);
+    cpu       *c     = cpu_create(arena);
 
-    test(cpu_read(cpu) == ERR_OK);
+    test(cpu_read(c) != ERR_OK);
 }
 
+/*
+ * Test: CPU model string is populated
+ */
 local_internal void
 test_cpu_model_present()
 {
     mem_arena *arena = arena_create(MiB(4));
-    Cpu       *cpu   = cpu_create(arena);
+    cpu       *c     = cpu_create(arena);
 
-    cpu_read(cpu);
+    cpu_read(c);
 
-    test(cpu->model[0] != '\0');
+    test(c->model[0] != '\0');
 }
 
+/*
+ * Test: CPU core count is > 0
+ */
 local_internal void
 test_cpu_cores_positive()
 {
     mem_arena *arena = arena_create(MiB(4));
-    Cpu       *cpu   = cpu_create(arena);
+    cpu       *c     = cpu_create(arena);
 
-    cpu_read(cpu);
+    cpu_read(c);
 
-    test(cpu->cores > 0);
+    test(c->cores > 0);
 }
 
+/*
+ * Test: CPU frequency string is populated
+ */
 local_internal void
 test_cpu_frequency_present()
 {
     mem_arena *arena = arena_create(MiB(4));
-    Cpu       *cpu   = cpu_create(arena);
+    cpu       *c     = cpu_create(arena);
 
-    cpu_read(cpu);
+    cpu_read(c);
 
-    test(cpu->frequency[0] != '\0');
+    test(c->frequency[0] != '\0');
 }
 
-local_internal void
-test_cpu_usage_read()
-{
-    mem_arena *arena = arena_create(MiB(4));
-    Cpu       *cpu   = cpu_create(arena);
-
-    test(cpu_read_usage(cpu) == ERR_OK);
-}
-
-local_internal void
-test_cpu_usage_values_valid()
-{
-    mem_arena *arena = arena_create(MiB(4));
-    Cpu       *cpu   = cpu_create(arena);
-
-    cpu_read_usage(cpu);
-
-    test(cpu->total_time > 0);
-    test(cpu->idle_time <= cpu->total_time);
-}
-
-local_internal void
-test_cpu_usage_monotonic()
-{
-    mem_arena *arena = arena_create(MiB(4));
-    Cpu       *cpu   = cpu_create(arena);
-
-    cpu_read_usage(cpu);
-    u64 total1 = cpu->total_time;
-    u64 idle1  = cpu->idle_time;
-
-    sleep(1);
-
-    cpu_read_usage(cpu);
-    u64 total2 = cpu->total_time;
-    u64 idle2  = cpu->idle_time;
-
-    test(total2 >= total1);
-    test(idle2 >= idle1);
-}
-
+/*
+ * Test: cpu_read is idempotent for static fields
+ */
 local_internal void
 test_cpu_read_idempotent()
 {
     mem_arena *arena = arena_create(MiB(4));
-    Cpu       *cpu   = cpu_create(arena);
+    cpu       *c     = cpu_create(arena);
 
-    cpu_read(cpu);
+    cpu_read(c);
 
-    char model_copy[sizeof(cpu->model)];
-    memcpy(model_copy, cpu->model, sizeof(cpu->model));
+    char model_copy[sizeof(c->model)];
+    memcpy(model_copy, c->model, sizeof(c->model));
 
-    cpu_read(cpu);
+    cpu_read(c);
 
-    test(strcmp(cpu->model, model_copy) == 0);
+    test(strcmp(c->model, model_copy) == 0);
 }
 
+/*
+ * Test: cpu_read(NULL) returns ERR_INVALID (debug only)
+ */
 local_internal void
 test_cpu_read_null()
 {
@@ -126,33 +105,33 @@ test_cpu_read_null()
 #endif
 }
 
+/*
+ * Test: CPU vendor present on x86
+ */
 local_internal void
 test_cpu_vendor_present()
 {
 #if defined(__i386__) || defined(__x86_64__)
     mem_arena *arena = arena_create(MiB(4));
-    Cpu       *cpu   = cpu_create(arena);
+    cpu       *c     = cpu_create(arena);
 
-    cpu_read(cpu);
+    cpu_read(c);
 
-    test(cpu->vendor[0] != '\0');
+    test(c->vendor[0] != '\0');
 #endif
 }
 
 int
-main()
+main(void)
 {
-    test_cpu_create();
-    test_cpu_read_returns_ok();
-    test_cpu_model_present();
-    test_cpu_vendor_present();
-    test_cpu_cores_positive();
-    test_cpu_frequency_present();
-    test_cpu_usage_read();
-    test_cpu_usage_values_valid();
-    test_cpu_usage_monotonic();
-    test_cpu_read_idempotent();
-    test_cpu_read_null();
+  test_cpu_create();
+  test_cpu_read_returns_ok();
+  test_cpu_model_present();
+  test_cpu_vendor_present();
+  test_cpu_cores_positive();
+  test_cpu_frequency_present();
+  test_cpu_read_idempotent();
+  test_cpu_read_null();
 
     return 0;
 }

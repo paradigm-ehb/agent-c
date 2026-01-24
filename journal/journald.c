@@ -32,19 +32,20 @@ global_variable const char *journal_field_names[JOURNAL_FIELD_COUNT] = {
 local_internal JournalField
 parse_unit_name(char *unit)
 {
+    (void)unit;
     return JOURNAL_FIELD_HOSTNAME;
 }
 
 local_internal const char *
 logs(char *unit, char *time, JournalField jf)
 {
+    (void)unit;
+    (void)time;
+
     sd_journal *journal = NULL;
 
     int code = sd_journal_open(&journal, SD_JOURNAL_LOCAL_ONLY);
-    if (code != 0)
-    {
-        assert(0);
-    }
+    check(code != 0);
 
     sd_journal_seek_head(journal);
 
