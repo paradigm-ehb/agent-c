@@ -20,6 +20,7 @@
 #define ARENA_ALIGN (sizeof(void *))
 
 typedef struct mem_arena global_arena;
+typedef struct temp_arena temp_arena;
 
 struct mem_arena
 {
@@ -30,7 +31,7 @@ struct mem_arena
 
 struct temp_arena
 {
-  mem_arena *arena;
+  global_arena *arena;
   umm offset;
   umm prev_offset;
 };

@@ -11,8 +11,7 @@ OUT_DIR="grpc/generated"
 # Locate protoc (FORCE system version, ignore ~/.local/bin)
 PROTOC="/usr/bin/protoc"  # Explicitly use system protoc
 if [ ! -x "$PROTOC" ]; then
-  echo "error: system protoc not found at $PROTOC"
-  echo "install with: sudo dnf install protobuf-compiler"
+  eche "error: system protoc not found at $PROTOC"
   exit 1
 fi
 

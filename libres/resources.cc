@@ -376,6 +376,7 @@ ram_read(memory *out)
         return ERR_IO;
     }
 
+    /* replace with actual  tempa arena*/
     mem_arena *temp_arena = arena_create(KiB(8));
 
     size_t total_len;

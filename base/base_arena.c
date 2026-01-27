@@ -14,7 +14,7 @@
 
 /* credits gingerbill arena allocaters article */
 local_internal inline u64
-align(u64 ptr, u64 align)
+align_stub(u64 ptr, u64 align)
 {
   umm p, a, modulo;
 
@@ -102,7 +102,7 @@ arena_clear(global_arena *arena)
 }
 
 local_internal temp_arena
-temp_arena_begin(mem_arena *arena)
+temp_arena_begin(global_arena *arena)
 {
   temp_arena temp;
   temp.arena = arena;

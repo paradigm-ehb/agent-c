@@ -85,33 +85,8 @@ struct sys_disk
 {
     partition *partitions;
 
-    size_t part_count;
-    size_t part_capacity;
-};
-
-enum TransportLayerType
-{
-    TRANSPORT_TCP,
-    TRANSPORT_UDP,
-    TRANSPORT_SCTP,
-    /**
-   * NOTE(nasr): don't forget to account for SCTP
-   * */
-};
-
-struct Port
-{
-    /**
-   * Get the name by calling
-   * what service is listening to port xx
-   *
-   * */
-    char name[BUFFER_SIZE_SMALL];
-
-    int                     port;
-    enum TransportLayerType type;
-    char                    alias[BUFFER_SIZE_DEFAULT];
-    char                    comment[BUFFER_SIZE_DEFAULT];
+    umm part_count;
+    umm part_capacity;
 };
 
 struct sys_device

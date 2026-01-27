@@ -29,7 +29,7 @@ test_cpu_read_returns_ok()
     mem_arena *arena = arena_create(MiB(4));
     cpu       *c     = cpu_create(arena);
 
-    test(cpu_read(c) != ERR_OK);
+    test(cpu_read(c) == ERR_OK);
 }
 
 /*

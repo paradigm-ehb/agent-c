@@ -90,8 +90,6 @@ parse_u64(char *buf, size_t len);
 local_internal b8
 is_numeric(char *s);
 
-local_internal b8
-compare_string(const char *c1, const char *c2);
 
 local_internal inline u64
 align_up_pow(u64 n, u64 p);
