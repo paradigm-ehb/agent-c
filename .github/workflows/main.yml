@@ -24,5 +24,9 @@ jobs:
             libdbus-1-dev \
             libssl-dev
 
+
+      - name: compile protobufs
+        run: ./build_proto.sh
+
       - name: Build
-        run: make
+        run: make clean all
