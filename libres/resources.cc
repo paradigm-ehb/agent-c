@@ -1,4 +1,5 @@
 #include "libres/resources.h"
+#include "base/base_include.h"
 
 /*
  * disk_push_partition - Add a partition to the disk structure
@@ -17,7 +18,18 @@ disk_push_partition(disk *d, partition p, mem_arena *arena)
     {
         size_t new_cap = d->part_capacity ? d->part_capacity * 2 : 8;
 
-        partition *np = PUSH_ARRAY_NZ(arena, partition, new_cap);
+        /*
+         * TODO(nasr): not really a memory leak
+         * but we keep appending disk partitions to the arena and keeping the old ones
+         * which causes the arena to keep infintly growing every time we call this function
+         *
+         * Now it's kind of a bad bug, but a low priority one at the same time because
+         * this function shouldn't be called that often
+         * because we provice the individual resource updates
+         *
+         * We should think about popping the previous one that has been allocated
+         * */
+        partition *np = PUSH_ARRAY(arena, partition, new_cap);
         if (!np)
             return;
 
@@ -41,7 +53,7 @@ disk_push_partition(disk *d, partition p, mem_arena *arena)
 local_internal cpu *
 cpu_create(mem_arena *m)
 {
-    return (cpu *)arena_push(m, sizeof(cpu), 1);
+    return (cpu *)arena_alloc(m, sizeof(cpu));
 }
 
 /*
@@ -108,7 +120,7 @@ cpu_read_cpu_model_name_arm64(cpu *out)
         return ERR_IO;
     }
 
-    u8 buffer[BUFFER_SIZE_DEFAULT];
+    u8 buffer[BUFF_DEFAULT];
 
     /**
 	*
@@ -147,7 +159,7 @@ cpu_get_cores_enabled_arm(cpu *out)
     FILE *fp = fopen("/sys/devices/system/cpu/enabled", "r");
     assert(fp);
 
-    char buf[BUFFER_SIZE_DEFAULT];
+    char buf[BUFF_DEFAULT];
     assert(fgets(buf, sizeof(buf), fp));
     fclose(fp);
 
@@ -179,6 +191,10 @@ cpu_get_cores_enabled_arm(cpu *out)
     return ERR_OK;
 }
 
+/*
+ * TODO(nasr): fix the bad reading for arm cpu's
+ * we only read one file or something and that overrites our values
+ * */
 int
 cpu_read_arm64(cpu *out)
 {
@@ -194,6 +210,14 @@ cpu_read_arm64(cpu *out)
 
     return ERR_OK;
 }
+
+/*
+ * TODO(nasr): STRING TERMINATION SAFETY
+ *
+ * All memcpy() calls that copy parsed strings MUST append '\0'.
+ * Current implementation relies on zero-initialized structs,
+ * which is fragile and not guaranteed.
+ */
 
 int
 cpu_read_amd64(cpu *out)
@@ -211,7 +235,7 @@ cpu_read_amd64(cpu *out)
         return ERR_IO;
     }
 
-    char buf[BUFFER_SIZE_LARGE];
+    char buf[BUFF_LARGE];
     while (fgets(buf, sizeof(buf), f))
     {
         char *colon = strchr(buf, ':');
@@ -238,7 +262,7 @@ cpu_read_amd64(cpu *out)
         }
         if (!strncmp(buf, "cpu cores", 9))
         {
-            out->cores = (u32)atoi(buf);
+            out->cores = (u32)parse_u64(buf, sizeof(buf));
         }
     }
 
@@ -297,7 +321,7 @@ cpu_read_usage(cpu *out)
         return ERR_IO;
     }
 
-    char buf[BUFFER_SIZE_LARGE];
+    char buf[BUFF_LARGE];
     while (fgets(buf, sizeof(buf), f))
     {
         if (strncmp(buf, "cpu ", 4) == 0)
@@ -336,7 +360,7 @@ cpu_read_usage(cpu *out)
 memory *
 ram_create(mem_arena *m)
 {
-    return (memory *)arena_push(m, sizeof(memory), 1);
+    return (memory *)arena_alloc(m, sizeof(memory));
 }
 
 /*
@@ -373,7 +397,7 @@ ram_read(memory *out)
     char *total_buffer;
     char *free_buffer;
 
-    char buf[BUFFER_SIZE_SMALL];
+    char buf[BUFF_SMALL];
     while (fgets(buf, sizeof(buf), f))
     {
         char *colon = strchr(buf, ':');
@@ -421,7 +445,7 @@ ram_read(memory *out)
 disk *
 disk_create(mem_arena *m)
 {
-    return (disk *)arena_push(m, sizeof(disk), 1);
+    return (disk *)arena_alloc(m, sizeof(disk));
 }
 
 /*
@@ -452,18 +476,27 @@ disk_read(disk *out, mem_arena *arena)
         return ERR_IO;
     }
 
-    char buf[BUFFER_SIZE_DEFAULT];
+    char buf[BUFF_DEFAULT];
 
     while (fgets(buf, sizeof(buf), f))
     {
         partition p = {
+        .blocks = 0,
         .major  = 0,
         .minor  = 0,
-        .blocks = 0,
         .name   = {}};
-        char name[BUFFER_SIZE_DEFAULT];
+        char name[BUFF_DEFAULT];
 
-        if (sscanf(buf, "%lu %lu %lu %255s", &p.major, &p.minor, &p.blocks, name) != 4)
+        /*
+         * TODO(nasr): clean up this ugly thing
+         * remove sscanf
+         * */
+        if (sscanf(buf,
+            "%d %d %lu %255s",
+            &p.major,
+            &p.minor,
+            &p.blocks,
+            name) != 4)
         {
             continue;
         }
@@ -485,7 +518,7 @@ disk_read(disk *out, mem_arena *arena)
 local_internal fs *
 fs_create(mem_arena *arena)
 {
-    return (fs *)arena_push(arena, sizeof(fs), 1);
+    return (fs *)arena_alloc(arena, sizeof(fs));
 }
 
 local_internal int
@@ -520,7 +553,7 @@ fs_read(char *path, fs *fs)
 local_internal device *
 device_create(mem_arena *m)
 {
-    return (device *)arena_push(m, sizeof(device), 1);
+    return (device *)arena_alloc(m, sizeof(device));
 }
 
 /*
@@ -548,7 +581,7 @@ process_list_collect(proc_list *list, mem_arena *arena)
     {
         list->capacity = 8;
         list->count    = 0;
-        list->items    = PUSH_ARRAY_NZ(arena, proc, list->capacity);
+        list->items    = PUSH_ARRAY(arena, proc, list->capacity);
         if (!list->items)
         {
             closedir(d);
@@ -565,7 +598,7 @@ process_list_collect(proc_list *list, mem_arena *arena)
         if (list->count == list->capacity)
         {
             size_t new_cap = list->capacity * 2;
-            proc  *np      = PUSH_ARRAY_NZ(arena, proc, new_cap);
+            proc  *np      = PUSH_ARRAY(arena, proc, new_cap);
             if (!np)
                 break;
 
@@ -576,7 +609,7 @@ process_list_collect(proc_list *list, mem_arena *arena)
 
         proc *p = &list->items[list->count++];
 
-        p->pid         = atoi(e->d_name);
+        p->pid         = parse_u64(e->d_name, sizeof(e->d_name));
         p->state       = proc_undefined;
         p->utime       = 0;
         p->stime       = 0;
@@ -612,7 +645,7 @@ process_read(i32 pid, proc *out)
         return ERR_IO;
     }
 
-    char buf[BUFFER_SIZE_LARGE];
+    char buf[BUFF_LARGE];
 
     /* initialize */
     out->pid = pid;
@@ -705,7 +738,8 @@ process_read(i32 pid, proc *out)
 
         if (!strncmp(buf, "Threads:", 8))
         {
-            out->num_threads = (u32)strtoul(val, 0, 10);
+            // FIXME(nasr): remove stdlib
+            out->num_threads = parse_u64(val, sizeof(val));
         }
     }
 
@@ -781,7 +815,7 @@ device_read(device *out)
         return ERR_IO;
     }
 
-    char buffer[BUFFER_SIZE_DEFAULT];
+    char buffer[BUFF_DEFAULT];
     while (fgets(buffer, sizeof(out->os_version), version))
     {
         if (!strncmp(buffer, "NAME=", 5))

@@ -4,7 +4,6 @@
 #include <stdint.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
@@ -43,11 +42,11 @@ typedef enum
 
 struct sys_process
 {
-    char           name[BUFFER_SIZE_SMALL];
-    u64            utime;
-    u64            stime;
-    i32            pid;
+    char           name[16];
     i8             num_threads;
+    u64            stime;
+    u64            utime;
+    i32            pid;
     sys_proc_state state;
 };
 
@@ -60,20 +59,24 @@ struct sys_process_list
 
 struct sys_partition
 {
-    u64  major;
-    u64  minor;
-    u64  blocks;
-    char name[BUFFER_SIZE_SMALL];
+    u64 blocks;
+    u32 major;
+    u32 minor;
+
+    char name[32];
 };
 
 struct sys_cpu
 {
-    u64  total_time;
-    u64  idle_time;
-    u32  cores;
-    char vendor[BUFFER_SIZE_DEFAULT];
-    char model[BUFFER_SIZE_DEFAULT];
-    char frequency[BUFFER_SIZE_SMALL];
+    u64 total_time;
+    u64 idle_time;
+
+    u32 cores;
+    u32 _pad;
+
+    char vendor[16];
+    char model[64];
+    char frequency[16];
 };
 
 struct sys_memory
@@ -98,25 +101,23 @@ struct sys_disk
     umm part_capacity;
 };
 
+/*
+ * TODO(nasr): clean up this ugly struct
+ * takes 544 bytes (8 byte alignment)
+ * */
 struct sys_device
 {
-    char         os_version[BUFFER_SIZE_DEFAULT];
-    char         uptime[BUFFER_SIZE_DEFAULT];
+    char         os_version[BUFF_DEFAULT];
+    char         uptime[BUFF_DEFAULT];
     proc_list    processes;
     struct Port *port;
 };
 
 local_internal cpu *
-cpu_create(global_arena *arena);
+cpu_create(mem_arena *arena);
 
 local_internal int
 cpu_read(cpu *out);
-
-local_internal int
-cpu_read_arm64(cpu *out);
-
-local_internal int
-cpu_read_amd64(cpu *out);
 
 local_internal int
 cpu_read_usage(cpu *out);
@@ -131,25 +132,25 @@ local_internal int
 cpu_read_enabled_core_cpu_frequency(cpu *out, int enabled_cpu_count);
 
 local_internal memory *
-ram_create(global_arena *arena);
+ram_create(mem_arena *arena);
 
 local_internal int
 ram_read(memory *out);
 
 local_internal disk *
-disk_create(global_arena *arena);
+disk_create(mem_arena *arena);
 
 local_internal int
-disk_read(disk *out, global_arena *arena);
+disk_read(disk *out, mem_arena *arena);
 
 local_internal fs *
-fs_create(global_arena *arena);
+fs_create(mem_arena *arena);
 
 local_internal int
 fs_read(char *path, fs *fs);
 
 local_internal device *
-device_create(global_arena *arena);
+device_create(mem_arena *arena);
 
 local_internal int
 device_read(device *out);
@@ -158,7 +159,7 @@ local_internal int
 device_up_time(device *out);
 
 local_internal int
-process_list_collect(proc_list *list, global_arena *arena);
+process_list_collect(proc_list *list, mem_arena *arena);
 
 local_internal int
 process_read(int32_t pid, proc *out);

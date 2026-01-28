@@ -1,10 +1,11 @@
-#include "base/base.h"
-#include "base/base_arena.h"
-#include "libres/resources.h"
+extern "C"
+{
+#define BASE_UNITY
+#include "base/base_include.h"
+#undef BASE_UNITY
+}
 
-/* unity build */
-#include "base/base.c"
-#include "base/base_arena.c"
+#include "libres/resources.h"
 #include "libres/resources.cc"
 
 /*
@@ -15,7 +16,6 @@ test_cpu_create()
 {
     mem_arena *arena = arena_create(MiB(1));
     cpu       *c     = cpu_create(arena);
-
 
     test(c != NULL);
 }
@@ -123,14 +123,14 @@ test_cpu_vendor_present()
 int
 main(void)
 {
-  test_cpu_create();
-  test_cpu_read_returns_ok();
-  test_cpu_model_present();
-  test_cpu_vendor_present();
-  test_cpu_cores_positive();
-  test_cpu_frequency_present();
-  test_cpu_read_idempotent();
-  test_cpu_read_null();
+    test_cpu_create();
+    test_cpu_read_returns_ok();
+    test_cpu_model_present();
+    test_cpu_vendor_present();
+    test_cpu_cores_positive();
+    test_cpu_frequency_present();
+    test_cpu_read_idempotent();
+    test_cpu_read_null();
 
     return 0;
 }

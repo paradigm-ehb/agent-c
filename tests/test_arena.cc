@@ -1,8 +1,10 @@
-#include "base/base.h"
-#include "base/base_arena.h"
-/* unity build */
-#include "base/base.c"
-#include "base/base_arena.c"
+extern "C"
+{
+#define BASE_UNITY
+#include "base/base_include.h"
+#undef BASE_UNITY
+}
+
 #include <string.h>
 
 /*
@@ -22,8 +24,8 @@ test_arena_create()
 local_internal void
 test_arena_capacity()
 {
-    u64 capacity = MiB(2);
-    mem_arena *arena = arena_create(capacity);
+    u64        capacity = MiB(2);
+    mem_arena *arena    = arena_create(capacity);
     test(arena->capacity == capacity);
     arena_destroy(arena);
 }
@@ -41,26 +43,27 @@ test_arena_initial_pos()
 }
 
 /*
- * Test: arena_push returns non-NULL pointer
+ * Test: arena_alloc returns non-NULL pointer
  */
 local_internal void
-test_arena_push_returns_valid()
+test_arena_alloc_returns_valid()
 {
     mem_arena *arena = arena_create(MiB(1));
-    void *ptr = arena_push(arena, 128, 0);
+    void      *ptr   = arena_alloc(arena, 128);
+
     test(ptr != NULL);
     arena_destroy(arena);
 }
 
 /*
- * Test: arena_push zeros memory by default
+ * Test: arena_alloc zeros memory by default
  */
 local_internal void
-test_arena_push_zeros_memory()
+test_arena_alloc_zeros_memory()
 {
-    mem_arena *arena = arena_create(MiB(1));
-    u8 *ptr = (u8 *)arena_push(arena, 64, 0);
-    b32 all_zero = TRUE;
+    mem_arena *arena    = arena_create(MiB(1));
+    u8        *ptr      = (u8 *)arena_alloc(arena, 64);
+    b32        all_zero = TRUE;
     for (u64 i = 0; i < 64; i++)
     {
         if (ptr[i] != 0)
@@ -74,69 +77,69 @@ test_arena_push_zeros_memory()
 }
 
 /*
- * Test: arena_push with non_zero flag doesn't zero memory
+ * Test: arena_alloc with non_zero flag doesn't zero memory
  */
 local_internal void
-test_arena_push_non_zero()
+test_arena_alloc_non_zero()
 {
     mem_arena *arena = arena_create(MiB(1));
-    u8 *ptr = (u8 *)arena_push(arena, 64, 1);
+    u8        *ptr   = (u8 *)arena_alloc(arena, 64);
     // Fill with non-zero values
     memset(ptr, 0xFF, 64);
-    u8 *ptr2 = (u8 *)arena_push(arena, 64, 1);
+    u8 *ptr2 = (u8 *)arena_alloc(arena, 64);
     // The memory shouldn't be zeroed
     test(ptr2 != NULL);
     arena_destroy(arena);
 }
 
 /*
- * Test: arena_push updates position correctly
+ * Test: arena_alloc updates position correctly
  */
 local_internal void
-test_arena_push_updates_pos()
+test_arena_alloc_updates_pos()
 {
-    mem_arena *arena = arena_create(MiB(1));
-    u64 initial_pos = arena->pos;
-    arena_push(arena, 128, 0);
+    mem_arena *arena       = arena_create(MiB(1));
+    u64        initial_pos = arena->pos;
+    arena_alloc(arena, 128);
     test(arena->pos > initial_pos);
     arena_destroy(arena);
 }
 
 /*
- * Test: arena_push aligns allocations
+ * Test: arena_alloc aligns allocations
  */
 local_internal void
-test_arena_push_alignment()
+test_arena_alloc_alignment()
 {
     mem_arena *arena = arena_create(MiB(1));
-    void *ptr1 = arena_push(arena, 1, 0);
-    void *ptr2 = arena_push(arena, 1, 0);
+    void      *ptr1  = arena_alloc(arena, 1);
+    void      *ptr2  = arena_alloc(arena, 1);
     test(((u64)ptr1 % ARENA_ALIGN) == 0);
     test(((u64)ptr2 % ARENA_ALIGN) == 0);
     arena_destroy(arena);
 }
 
 /*
- * Test: multiple pushes don't overlap
+ * Test: multiple alloces don't overlap
  */
 local_internal void
-test_arena_push_no_overlap()
+test_arena_alloc_no_overlap()
 {
     mem_arena *arena = arena_create(MiB(1));
-    u32 *ptr1 = (u32 *)arena_push(arena, sizeof(u32), 0);
-    u32 *ptr2 = (u32 *)arena_push(arena, sizeof(u32), 0);
-    *ptr1 = 0xDEADBEEF;
-    *ptr2 = 0xCAFEBABE;
+    u32       *ptr1  = (u32 *)arena_alloc(arena, sizeof(u32));
+    u32       *ptr2  = (u32 *)arena_alloc(arena, sizeof(u32));
+    *ptr1            = 0xDEADBEEF;
+    *ptr2            = 0xCAFEBABE;
     test(*ptr1 == 0xDEADBEEF);
     test(*ptr2 == 0xCAFEBABE);
     arena_destroy(arena);
 }
 
 /*
- * Test: PUSH_STRUCT macro works
+ * Test: alloc_STRUCT macro works
  */
 local_internal void
-test_push_struct_macro()
+test_alloc_struct_macro()
 {
     typedef struct test_struct
     {
@@ -145,8 +148,8 @@ test_push_struct_macro()
         u16 c;
     } test_struct;
 
-    mem_arena *arena = arena_create(MiB(1));
-    test_struct *s = PUSH_STRUCT(arena, test_struct);
+    mem_arena   *arena = arena_create(MiB(1));
+    test_struct *s     = PUSH_STRUCT(arena, test_struct);
     test(s != NULL);
     test(s->a == 0);
     test(s->b == 0);
@@ -155,13 +158,13 @@ test_push_struct_macro()
 }
 
 /*
- * Test: PUSH_ARRAY macro works
+ * Test: alloc_ARRAY macro works
  */
 local_internal void
-test_push_array_macro()
+test_alloc_array_macro()
 {
     mem_arena *arena = arena_create(MiB(1));
-    u32 *arr = PUSH_ARRAY(arena, u32, 10);
+    u32       *arr   = PUSH_ARRAY(arena, u32, 10);
     test(arr != NULL);
     for (int i = 0; i < 10; i++)
     {
@@ -177,7 +180,7 @@ local_internal void
 test_arena_pop()
 {
     mem_arena *arena = arena_create(MiB(1));
-    arena_push(arena, 256, 0);
+    arena_alloc(arena, 256);
     u64 pos_before = arena->pos;
     arena_pop(arena, 128);
     test(arena->pos == pos_before - 128);
@@ -190,8 +193,8 @@ test_arena_pop()
 local_internal void
 test_arena_pop_safety()
 {
-    mem_arena *arena = arena_create(MiB(1));
-    u64 initial_pos = arena->pos;
+    mem_arena *arena       = arena_create(MiB(1));
+    u64        initial_pos = arena->pos;
     arena_pop(arena, MiB(10)); // Try to pop more than allocated
     test(arena->pos == initial_pos);
     arena_destroy(arena);
@@ -204,9 +207,9 @@ local_internal void
 test_arena_pop_to()
 {
     mem_arena *arena = arena_create(MiB(1));
-    arena_push(arena, 512, 0);
+    arena_alloc(arena, 512);
     u64 target_pos = arena->pos;
-    arena_push(arena, 256, 0);
+    arena_alloc(arena, 256);
     arena_pop_to(arena, target_pos);
     test(arena->pos == target_pos);
     arena_destroy(arena);
@@ -218,10 +221,10 @@ test_arena_pop_to()
 local_internal void
 test_arena_clear()
 {
-    mem_arena *arena = arena_create(MiB(1));
-    u64 initial_pos = arena->pos;
-    arena_push(arena, 1024, 0);
-    arena_push(arena, 2048, 0);
+    mem_arena *arena       = arena_create(MiB(1));
+    u64        initial_pos = arena->pos;
+    arena_alloc(arena, 1024);
+    arena_alloc(arena, 2048);
     arena_clear(arena);
     test(arena->pos == initial_pos);
     arena_destroy(arena);
@@ -234,7 +237,7 @@ local_internal void
 test_temp_arena_begin()
 {
     mem_arena *arena = arena_create(MiB(1));
-    arena_push(arena, 256, 0);
+    arena_alloc(arena, 256);
     temp_arena temp = temp_arena_begin(arena);
     test(temp.arena == arena);
     test(temp.offset == arena->pos);
@@ -248,12 +251,13 @@ local_internal void
 test_temp_arena_end()
 {
     mem_arena *arena = arena_create(MiB(1));
-    arena_push(arena, 256, 0);
-    temp_arena temp = temp_arena_begin(arena);
-    u64 saved_pos = arena->pos;
-    arena_push(arena, 512, 0);
-    arena_push(arena, 1024, 0);
+    arena_alloc(arena, 256);
+    temp_arena temp      = temp_arena_begin(arena);
+    u64        saved_pos = arena->pos;
+    arena_alloc(arena, 512);
+    arena_alloc(arena, 1024);
     temp_arena_end(temp);
+
     test(arena->pos == saved_pos);
     arena_destroy(arena);
 }
@@ -265,14 +269,14 @@ local_internal void
 test_temp_arena_nesting()
 {
     mem_arena *arena = arena_create(MiB(1));
-    u64 pos0 = arena->pos;
-    arena_push(arena, 128, 0);
+    u64        pos0  = arena->pos;
+    arena_alloc(arena, 128);
     temp_arena temp1 = temp_arena_begin(arena);
-    u64 pos1 = arena->pos;
-    arena_push(arena, 256, 0);
+    u64        pos1  = arena->pos;
+    arena_alloc(arena, 256);
     temp_arena temp2 = temp_arena_begin(arena);
-    u64 pos2 = arena->pos;
-    arena_push(arena, 512, 0);
+    u64        pos2  = arena->pos;
+    arena_alloc(arena, 512);
     temp_arena_end(temp2);
     test(arena->pos == pos2);
     temp_arena_end(temp1);
@@ -287,11 +291,11 @@ local_internal void
 test_arena_reuse()
 {
     mem_arena *arena = arena_create(MiB(1));
-    u64 *ptr1 = PUSH_STRUCT(arena, u64);
-    *ptr1 = 42;
+    u64       *ptr1  = PUSH_STRUCT(arena, u64);
+    *ptr1            = 42;
     arena_clear(arena);
     u64 *ptr2 = PUSH_STRUCT(arena, u64);
-    *ptr2 = 84;
+    *ptr2     = 84;
     test(*ptr2 == 84);
     arena_destroy(arena);
 }
@@ -303,7 +307,7 @@ local_internal void
 test_arena_large_allocation()
 {
     mem_arena *arena = arena_create(MiB(10));
-    void *ptr = arena_push(arena, MiB(5), 0);
+    void      *ptr   = arena_alloc(arena, MiB(5));
     test(ptr != NULL);
     arena_destroy(arena);
 }
@@ -314,14 +318,14 @@ main(void)
     test_arena_create();
     test_arena_capacity();
     test_arena_initial_pos();
-    test_arena_push_returns_valid();
-    test_arena_push_zeros_memory();
-    test_arena_push_non_zero();
-    test_arena_push_updates_pos();
-    test_arena_push_alignment();
-    test_arena_push_no_overlap();
-    test_push_struct_macro();
-    test_push_array_macro();
+    test_arena_alloc_returns_valid();
+    test_arena_alloc_zeros_memory();
+    test_arena_alloc_non_zero();
+    test_arena_alloc_updates_pos();
+    test_arena_alloc_alignment();
+    test_arena_alloc_no_overlap();
+    test_alloc_struct_macro();
+    test_alloc_array_macro();
     test_arena_pop();
     test_arena_pop_safety();
     test_arena_pop_to();

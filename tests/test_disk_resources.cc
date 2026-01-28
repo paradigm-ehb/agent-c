@@ -1,9 +1,11 @@
-#include "base/base.h"
-#include "base/base_arena.h"
-#include "libres/resources.h"
+extern "C"
+{
+#define BASE_UNITY
+#include "base/base_include.h"
+#undef BASE_UNITY
+}
 
-#include "base/base.c"
-#include "base/base_arena.c"
+#include "libres/resources.h"
 #include "libres/resources.cc"
 
 /*

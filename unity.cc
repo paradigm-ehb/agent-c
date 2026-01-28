@@ -1,10 +1,9 @@
 /*-------base files-----------*/
-extern "C" {
-
-#include "base/base_arena.c"
-#include "base/base.c"
-#include "base/base_parse.c"
-
+extern "C"
+{
+#define BASE_UNITY
+#include "base/base_include.h"
+#undef BASE_UNITY
 }
 
 /*----------------------------*/

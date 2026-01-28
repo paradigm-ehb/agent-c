@@ -23,7 +23,7 @@ port_read_tcp4(device *device)
         return ERR_INVALID;
     }
 
-    global_arena *temp_arena = arena_create(KiB(8));
+    mem_arena *temp_arena = arena_create(KiB(8));
 
     char *buffer;
     int   file = open("/etc/tcp", O_RDONLY);
@@ -32,7 +32,10 @@ port_read_tcp4(device *device)
         return ERR_IO;
     }
 
-    buffer = PUSH_ARRAY(temp_arena, char, BUFFER_SIZE_SMALL);
+    /*
+     * TODO(nasr): think about the size we are allocating here
+     * */
+    buffer = PUSH_ARRAY(temp_arena, char, BUFF_SMALL);
     do
     {
         read(file, buffer, 1);
@@ -51,7 +54,7 @@ port_read_tcp6(device *device)
         return ERR_INVALID;
     }
 
-    global_arena *temp_arena = arena_create(KiB(8));
+    mem_arena *temp_arena = arena_create(KiB(8));
 
     char *buffer;
     int   file = open("/etc/tcp6", O_RDONLY);
@@ -60,7 +63,8 @@ port_read_tcp6(device *device)
         return ERR_IO;
     }
 
-    buffer = PUSH_ARRAY(temp_arena, char, BUFFER_SIZE_SMALL);
+    /*TODO(nasr): think about the buffer size properly*/
+    buffer = PUSH_ARRAY(temp_arena, char, BUFF_SMALL);
     do
     {
         read(file, buffer, 1);

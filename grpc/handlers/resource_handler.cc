@@ -36,7 +36,7 @@ local_internal grpc::Status
         "deadline exceeded");
     }
 
-    global_arena *temp_arena = arena_create(MiB(8));
+    mem_arena *temp_arena = arena_create(MiB(8));
 
     cpu    *internal_cpu    = cpu_create(temp_arena);
     memory *internal_ram    = ram_create(temp_arena);
@@ -143,7 +143,7 @@ local_internal grpc::Status
         "deadline exceeded");
     }
 
-    global_arena *temp_arena = arena_create(MiB(8));
+    mem_arena *temp_arena = arena_create(MiB(8));
 
     cpu *internal_cpu = cpu_create(temp_arena);
 
@@ -193,7 +193,7 @@ local_internal grpc::Status
         "deadline exceeded");
     }
 
-    global_arena *temp_arena = arena_create(MiB(8));
+    mem_arena *temp_arena = arena_create(MiB(8));
 
     memory *internal_ram = ram_create(temp_arena);
 
@@ -211,7 +211,6 @@ local_internal grpc::Status
 
     ram_msg->set_total(internal_ram->total);
     ram_msg->set_free(internal_ram->free);
-
 
     arena_destroy(temp_arena);
 

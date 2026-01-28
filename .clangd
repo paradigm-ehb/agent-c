@@ -5,10 +5,20 @@ CompileFlags:
     - -std=c++17
     - -Wall
     - -Wextra
+
+    # Unity-build noise suppression
     - -Wno-unused-function
+    - -Wno-unused-parameter
+    - -Wno-unused-variable
+    - -Wno-unused-private-field
+    - -Wno-unused-local-typedefs
+    - -Wno-unused-value
+
+    # Debug parity with build
     - -g
     - -O0
-    - -I/home/nasr/c/agent-c/unity.cc
+
+    # Include paths
     - -I/home/nasr/c/agent-c
     - -I/home/nasr/c/agent-c/grpc/generated
 
@@ -21,6 +31,7 @@ CompileFlags:
     - -march=*
     - -mtune=*
     - -fPIC
+    - -fno-omit-frame-pointer
 
     # Optimization flags (we enforce -O0 above)
     - -O*
@@ -35,3 +46,7 @@ Diagnostics:
 
 Index:
   Background: Build
+  StandardLibrary: Yes
+
+Completion:
+  AllScopes: No

@@ -1,4 +1,6 @@
 #include "base/base_parse.h"
+#include "base/base.h"
+#include "base/base_arena.h"
 
 local_internal b8
 compare_string(const char *c1, const char *c2)
@@ -24,35 +26,67 @@ compare_string(const char *c1, const char *c2)
     return 0;
 }
 
-local_internal char *
-parse_proc_files(const char *path, const char *delim, global_arena *arena)
+/**
+ * Helper function to parse strings to int using ascii codes
+ * */
+local_internal u64
+parse_u64(char *buf, umm len)
 {
-    if (!path || !delim || !arena)
+    u64 value = 0;
+
+    for (
+    umm buffer_idx = 0;
+    buffer_idx < len;
+    ++buffer_idx)
+    {
+        char c = buf[buffer_idx];
+        if (c < '0' || c > '9')
+        {
+            break;
+        }
+        value = value * 10 + (c - '0');
+    }
+
+    return value;
+}
+
+local_internal ProcEntry *
+parse_proc_files(const char *path, mem_arena *arena)
+{
+    local_persist const char KEY_DELIM      = ':';
+    local_persist const char VALUE_DELIMS[] = {
+    ' ',
+    '\t',
+    };
+    local_persist const char RECORD_DELIM = '\n';
+
+    ProcEntry *entry = PUSH_STRUCT(arena, ProcEntry);
+    if (!path || !arena)
     {
         test(0);
         return NULL;
     }
 
-    umm delim_len = sizeof(*delim);
-    int fd        = open(path, O_RDONLY);
+    i32   fd;
+    u64   bytes;
+    char *buffer[BUFF_SMALL];
 
-    u64 bytes = 0;
-
-    char  buffer[BUFFER_SIZE_SMALL];
-    char *out;
-
-    /*
-      processor\t:0\n
-      NOTE(nasr): interesting this loads the complete buffer at once
-    */
     bytes = read(fd, buffer, sizeof(buffer));
     {
         char *start;
         char *end;
 
+        char buffer[BUFF_DEFAULT];
+
+        /* iteration over the buffer to split it up in lines */
         for (u64 buffer_position = 0;
         buffer_position < bytes;
         ++buffer_position)
+        {
+            /* define line */
+            if (buffer[buffer_position] == RECORD_DELIM)
+            {
+            }
 
             for (u64 line_position = 0;
             line_position < bytes;
@@ -65,7 +99,7 @@ parse_proc_files(const char *path, const char *delim, global_arena *arena)
                     continue;
                 }
 
-                if (line_bf[line_position] == delim[0])
+                if (line_bf[line_position] == KEY_DELIM)
                 {
                     start = &line_bf[line_position];
                     continue;
@@ -78,26 +112,44 @@ parse_proc_files(const char *path, const char *delim, global_arena *arena)
                     break;
                 }
             }
-        // break;
-    }
+            // break;
+        }
 
-    /*
-     out = PUSH_ARRAY(arena, char, sizeof(end));
-     MemCpy(out, end, sizeof(end));
-    */
-    close(fd);
-    return out;
+        close(fd);
+        return entry;
+    }
 }
 
+/*
+ * is_numeric - Check if a string contains only digits
+ * @s: String to check
+ *
+ * Return: 1 if string contains only numeric characters, 0 otherwise
+ */
+local_internal b8
+is_numeric(char *s)
+{
+    for (; *s; ++s)
+    {
+        if (*s < '0' || *s > '9')
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+#ifdef DEBUG
 int
 main(void)
 {
-    global_arena *arena = arena_create(MiB(8));
+    mem_arena *arena = arena_create(MiB(8));
 
     const char *path  = "/proc/cpuinfo";
     const char *delim = ":";
 
-    parse_proc_files(path, delim, arena);
+    parse_proc_files(path, arena);
 
     return 0;
 }
+#endif

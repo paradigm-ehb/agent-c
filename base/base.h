@@ -51,14 +51,14 @@
 
 #define unused(x) (void)(x)
 
-#define BUFFER_SIZE_SMALL 128
-#define BUFFER_SIZE_DEFAULT 256
-#define BUFFER_SIZE_LARGE 512
+#define BUFF_SMALL 128
+#define BUFF_DEFAULT 256
+#define BUFF_LARGE 512
 #define PATH_MAX_LEN 4096
 
 #define DEPRECATED __attribute__((__deprecated__))
 
-#define MemCpy(dest, src, len)  memcpy(dest, src, len)
+#define MemCpy(dest, src, len) memcpy(dest, src, len)
 
 typedef uint64_t u64;
 typedef uint32_t u32;
@@ -82,15 +82,5 @@ typedef intptr_t  smm;
 
 #define TRUE 1
 #define FALSE 0
-
-local_internal u64
-parse_u64(char *buf, size_t len);
-
-local_internal b8
-is_numeric(char *s);
-
-
-local_internal inline u64
-align_up_pow(u64 n, u64 p);
 
 #endif
