@@ -2,19 +2,24 @@
 #include <grpcpp/support/status.h>
 
 #include "libres/resources.h"
-#include "grpc/generated/resources/v3/deviceresources.pb.h"
-#include "grpc/grpc_include.h"
 
+#include "grpc/grpc_include.h"
+#include "base/base.h"
+
+#include <grpcpp/server_context.h>
+#include <grpcpp/support/status.h>
+
+#include "grpc/generated/resources/v3/deviceresources.pb.h"
 #include "base/base.h"
 
 using resources::v3::GetSystemResourcesReply;
 using resources::v3::GetSystemResourcesRequest;
 using resources::v3::SystemResources;
 
-local_internal grpc::Status
-               get_system_resources_impl(grpc::ServerContext *ctx,
-               const GetSystemResourcesRequest               *req,
-               GetSystemResourcesReply                       *resp)
+internal grpc::Status
+         get_system_resources_impl(grpc::ServerContext *ctx,
+         const GetSystemResourcesRequest               *req,
+         GetSystemResourcesReply                       *resp)
 {
     /* NOTE(nasr): for the general get_resources we don't take in any parameters*/
     unused(req);
@@ -120,11 +125,11 @@ local_internal grpc::Status
     return grpc::Status::OK;
 }
 
-local_internal grpc::Status
-               get_cpu_impl(
-               grpc::ServerContext                *ctx,
-               const resources::v3::GetCpuRequest *req,
-               resources::v3::GetCpuReply         *resp)
+internal grpc::Status
+         get_cpu_impl(
+         grpc::ServerContext                *ctx,
+         const resources::v3::GetCpuRequest *req,
+         resources::v3::GetCpuReply         *resp)
 {
     unused(req);
 
@@ -171,10 +176,10 @@ local_internal grpc::Status
     return grpc::Status::OK;
 }
 
-local_internal grpc::Status
-               get_ram_impl(grpc::ServerContext      *ctx,
-               const resources::v3::GetMemoryRequest *req,
-               resources::v3::GetMemoryReply         *resp)
+internal grpc::Status
+         get_ram_impl(grpc::ServerContext      *ctx,
+         const resources::v3::GetMemoryRequest *req,
+         resources::v3::GetMemoryReply         *resp)
 {
     unused(req);
 
@@ -197,17 +202,14 @@ local_internal grpc::Status
 
     memory *internal_ram = ram_create(temp_arena);
 
-    /*
-   * TODO(nasr): find a way to cleanup this deadline mess
-   * */
+    /* TODO(nasr): find a way to cleanup this deadline mess */
     ram_read(internal_ram);
 
     resources::v3::Memory *ram_msg = resp->mutable_memory();
 
-    /*
-   * NOTE(nasr): don't set the directive fo the individual resources
-   * they could conflict with the internal ones, just to avoid mistakes
-   * */
+    /** NOTE(nasr): don't set the directive fo the individual resources
+    * they could conflict with the internal ones, just to avoid mistakes
+    **/
 
     ram_msg->set_total(internal_ram->total);
     ram_msg->set_free(internal_ram->free);
@@ -217,10 +219,10 @@ local_internal grpc::Status
     return grpc::Status::OK;
 }
 
-local_internal grpc::Status
-               get_device_impl(grpc::ServerContext   *ctx,
-               const resources::v3::GetDeviceRequest *req,
-               resources::v3::GetDeviceReply         *resp)
+internal grpc::Status
+         get_device_impl(grpc::ServerContext   *ctx,
+         const resources::v3::GetDeviceRequest *req,
+         resources::v3::GetDeviceReply         *resp)
 {
     unused(req);
     unused(ctx);

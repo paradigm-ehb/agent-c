@@ -1,15 +1,25 @@
-#ifndef BAsE_PARSE_H
-#define BAsE_PARSE_H
+#ifndef BASE_PARSE_H
+#define BASE_PARSE_H
 
-#include "base/base_arena.h"
-#include <base/base.h>
-#include <fcntl.h>
+#include "base.h"
+#include "base_arena.h"
 
-typedef struct
+#define COMPARE_STRING(c1, c2) compare_string((char *)c1, (char *)c2)
+
+typedef struct proc_entry proc_entry;
+typedef struct proc_file  proc_file;
+
+struct proc_file
 {
-    char *key;
-    char *value[];
-} ProcEntry;
+    i32         count;
+    proc_entry *entries;
+};
+
+struct proc_entry
+{
+    char value[16];
+    char key[16];
+};
 
 typedef struct
 {
@@ -18,16 +28,16 @@ typedef struct
     umm len;
 } Line;
 
-local_internal b8
-compare_string(const char *c1, const char *c2);
+internal b8
+compare_string(char *c1, char *c2);
 
-local_internal ProcEntry *
-parse_proc_files(const char *path, mem_arena *arena);
+internal proc_file *
+parse_proc_files(char *path, mem_arena *arena);
 
-local_internal u64
-parse_u64(char *buf, size_t len);
+internal u64
+parse_u64(char *buf, umm len);
 
-local_internal b8
+internal b8
 is_numeric(char *s);
 
 #endif

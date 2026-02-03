@@ -1,52 +1,15 @@
 CompileFlags:
   CompilationDatabase: .
-
   Add:
-    - -std=c++17
-    - -Wall
-    - -Wextra
-
-    # Unity-build noise suppression
-    - -Wno-unused-function
-    - -Wno-unused-parameter
-    - -Wno-unused-variable
-    - -Wno-unused-private-field
-    - -Wno-unused-local-typedefs
-    - -Wno-unused-value
-
-    # Debug parity with build
-    - -g
-    - -O0
-
-    # Include paths
     - -I/home/nasr/c/agent-c
     - -I/home/nasr/c/agent-c/grpc/generated
-
-  Remove:
-    # Linker flags (clangd must never see these)
-    - -l*
-    - -pthread
-
-    # Codegen / ABI noise
-    - -march=*
-    - -mtune=*
-    - -fPIC
-    - -fno-omit-frame-pointer
-
-    # Optimization flags (we enforce -O0 above)
-    - -O*
-    - -Ofast
-
-Diagnostics:
-  Suppress:
-    # Generated-code and unity-build noise
-    - pp_file_not_found
-    - unused-command-line-argument
-    - unknown-warning-option
+    - -Wno-modernize-use-nullptr
+    - -Wno-missing-includes
 
 Index:
   Background: Build
   StandardLibrary: Yes
 
 Completion:
-  AllScopes: No
+  AllScopes: Yes
+

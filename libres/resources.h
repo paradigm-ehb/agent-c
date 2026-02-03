@@ -17,14 +17,14 @@
 
 #define RESOURCES_API_VERSION 1
 
-typedef struct sys_cpu          cpu;
-typedef struct sys_memory       memory;
-typedef struct sys_disk         disk;
-typedef struct sys_device       device;
-typedef struct sys_filesystem   fs;
-typedef struct sys_partition    partition;
-typedef struct sys_process      proc;
-typedef struct sys_process_list proc_list;
+typedef struct sys_cpu          sys_cpu;
+typedef struct sys_memory       sys_memory;
+typedef struct sys_disk         sys_disk;
+typedef struct sys_device       sys_device;
+typedef struct sys_filesystem   sys_fs;
+typedef struct sys_partition    sys_partition;
+typedef struct sys_process      sys_proc;
+typedef struct sys_process_list sys_proc_list;
 
 typedef enum
 {
@@ -52,9 +52,9 @@ struct sys_process
 
 struct sys_process_list
 {
-    proc *items;
-    umm   count;
-    umm   capacity;
+    sys_proc *items;
+    umm       count;
+    umm       capacity;
 };
 
 struct sys_partition
@@ -95,7 +95,7 @@ struct sys_filesystem
 
 struct sys_disk
 {
-    partition *partitions;
+    sys_partition *partitions;
 
     umm part_count;
     umm part_capacity;
@@ -107,64 +107,64 @@ struct sys_disk
  * */
 struct sys_device
 {
-    char         os_version[BUFF_DEFAULT];
-    char         uptime[BUFF_DEFAULT];
-    proc_list    processes;
-    struct Port *port;
+    char          os_version[BUFF_DEFAULT];
+    char          uptime[BUFF_DEFAULT];
+    sys_proc_list processes;
+    struct Port  *port;
 };
 
-local_internal cpu *
+internal sys_cpu *
 cpu_create(mem_arena *arena);
 
-local_internal int
-cpu_read(cpu *out);
+internal int
+cpu_read(sys_cpu *out);
 
-local_internal int
-cpu_read_usage(cpu *out);
+internal int
+cpu_read_usage(sys_cpu *out);
 
-local_internal int
-cpu_get_cores_enabled_arm(cpu *out);
+internal int
+cpu_get_cores_enabled_arm(sys_cpu *out);
 
-local_internal int
-cpu_read_cpu_model_name_arm64(cpu *out);
+internal int
+cpu_read_cpu_model_name_arm64(sys_cpu *out);
 
-local_internal int
-cpu_read_enabled_core_cpu_frequency(cpu *out, int enabled_cpu_count);
+internal int
+cpu_read_enabled_core_cpu_frequency(sys_cpu *out, int enabled_cpu_count);
 
-local_internal memory *
+internal sys_memory *
 ram_create(mem_arena *arena);
 
-local_internal int
-ram_read(memory *out);
+internal int
+ram_read(sys_memory *out);
 
-local_internal disk *
+internal sys_disk *
 disk_create(mem_arena *arena);
 
-local_internal int
-disk_read(disk *out, mem_arena *arena);
+internal int
+disk_read(sys_disk *out, mem_arena *arena);
 
-local_internal fs *
+internal sys_fs *
 fs_create(mem_arena *arena);
 
-local_internal int
-fs_read(char *path, fs *fs);
+internal int
+fs_read(char *path, sys_fs *fs);
 
-local_internal device *
+internal sys_device *
 device_create(mem_arena *arena);
 
-local_internal int
-device_read(device *out);
+internal int
+device_read(sys_device *out);
 
-local_internal int
-device_up_time(device *out);
+internal int
+device_up_time(sys_device *out);
 
-local_internal int
-process_list_collect(proc_list *list, mem_arena *arena);
+internal int
+process_list_collect(sys_proc_list *list, mem_arena *arena);
 
-local_internal int
-process_read(int32_t pid, proc *out);
+internal int
+process_read(int32_t pid, sys_proc *out);
 
-local_internal int
+internal int
 process_kill(pid_t pid, int signal);
 
 #endif /* RESOURCES_H */

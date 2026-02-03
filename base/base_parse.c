@@ -1,19 +1,14 @@
-#include "base/base_parse.h"
-#include "base/base.h"
-#include "base/base_arena.h"
+#define debug
+#include "base_parse.h"
+#undef debug
 
-local_internal b8
-compare_string(const char *c1, const char *c2)
+#include <fcntl.h>
+#include <unistd.h>
+
+internal b8
+compare_string(char *c1, char *c2)
 {
-    if (sizeof(c1) != sizeof(c2))
-    {
-        return -1;
-    }
-
-    for (
-    u64 word_idx = 0;
-    word_idx <= sizeof(*c1);
-    ++word_idx)
+    for (u64 word_idx = 0; word_idx <= sizeof(*c1); ++word_idx)
     {
         if (*c1 != *c2)
         {
@@ -29,15 +24,12 @@ compare_string(const char *c1, const char *c2)
 /**
  * Helper function to parse strings to int using ascii codes
  * */
-local_internal u64
+internal u64
 parse_u64(char *buf, umm len)
 {
     u64 value = 0;
 
-    for (
-    umm buffer_idx = 0;
-    buffer_idx < len;
-    ++buffer_idx)
+    for (umm buffer_idx = 0; buffer_idx < len; ++buffer_idx)
     {
         char c = buf[buffer_idx];
         if (c < '0' || c > '9')
@@ -50,83 +42,13 @@ parse_u64(char *buf, umm len)
     return value;
 }
 
-local_internal ProcEntry *
-parse_proc_files(const char *path, mem_arena *arena)
-{
-    local_persist const char KEY_DELIM      = ':';
-    local_persist const char VALUE_DELIMS[] = {
-    ' ',
-    '\t',
-    };
-    local_persist const char RECORD_DELIM = '\n';
-
-    ProcEntry *entry = PUSH_STRUCT(arena, ProcEntry);
-    if (!path || !arena)
-    {
-        test(0);
-        return NULL;
-    }
-
-    i32   fd;
-    u64   bytes;
-    char *buffer[BUFF_SMALL];
-
-    bytes = read(fd, buffer, sizeof(buffer));
-    {
-        char *start;
-        char *end;
-
-        char buffer[BUFF_DEFAULT];
-
-        /* iteration over the buffer to split it up in lines */
-        for (u64 buffer_position = 0;
-        buffer_position < bytes;
-        ++buffer_position)
-        {
-            /* define line */
-            if (buffer[buffer_position] == RECORD_DELIM)
-            {
-            }
-
-            for (u64 line_position = 0;
-            line_position < bytes;
-            ++line_position)
-            {
-                char *line_bf = &buffer[buffer_position];
-
-                if (line_bf[line_position] == '\t' || line_bf[line_position] == ' ')
-                {
-                    continue;
-                }
-
-                if (line_bf[line_position] == KEY_DELIM)
-                {
-                    start = &line_bf[line_position];
-                    continue;
-                }
-
-                start = &line_bf[line_position];
-                if (line_bf[line_position] == '\n')
-                {
-                    end = &line_bf[line_position];
-                    break;
-                }
-            }
-            // break;
-        }
-
-        close(fd);
-        return entry;
-    }
-}
-
 /*
  * is_numeric - Check if a string contains only digits
  * @s: String to check
  *
  * Return: 1 if string contains only numeric characters, 0 otherwise
  */
-local_internal b8
+internal b8
 is_numeric(char *s)
 {
     for (; *s; ++s)
@@ -139,17 +61,82 @@ is_numeric(char *s)
     return 1;
 }
 
-#ifdef DEBUG
-int
-main(void)
+/*
+ * TODO(nasr): checkout i think there is a buffer overflow happening somewhere
+ * */
+internal proc_file *
+parse_proc_files(char *path, mem_arena *arena)
 {
-    mem_arena *arena = arena_create(MiB(8));
+    if (!path || !arena)
+    {
+        return NULL;
+    }
 
-    const char *path  = "/proc/cpuinfo";
-    const char *delim = ":";
+    i32 fd = open(path, O_RDONLY);
+    if (fd < 0)
+    {
+        return NULL;
+    }
 
-    parse_proc_files(path, arena);
+    char *buffer = PushArray(arena, char, KiB(4));
+    u64   bytes  = read(fd, buffer, KiB(4));
+    close(fd);
 
-    return 0;
+    if (bytes == 0)
+    {
+        return NULL;
+    }
+
+    /* guessing the count to 256 because i dont want to do a double pass of the buffer */
+    proc_file *pf = PushStruct(arena, proc_file);
+    pf->entries   = PushArray(arena, proc_entry, 256);
+
+    u64 line_start  = 0;
+    u64 delim       = -1;
+    u64 entry_index = 0;
+
+    for (u64 index = 0; index < bytes; ++index)
+    {
+        if (buffer[index] == ':' && delim == (u64)-1)
+        {
+            delim = index;
+        }
+        else if (buffer[index] == '\n')
+        {
+            if (delim != (-1))
+            {
+                u64 key_len = delim - line_start;
+                if (key_len >= sizeof(pf->entries[entry_index].key))
+                {
+                    key_len = sizeof(pf->entries[entry_index].key) - 1;
+                }
+
+                u64 val_start = delim + 1;
+                while (val_start < index && (buffer[val_start] == ' ' || buffer[val_start] == '\t'))
+                {
+                    val_start++;
+                }
+
+                u64 val_len = index - val_start;
+                if (val_len >= sizeof(pf->entries[entry_index].value))
+                {
+                    val_len = sizeof(pf->entries[entry_index].value) - 1;
+                }
+
+                MemCpy(pf->entries[entry_index].key, buffer + line_start, key_len - 1);
+                MemCpy(pf->entries[entry_index].value, buffer + val_start, val_len);
+
+                pf->entries[entry_index].key[key_len]   = '\0';
+                pf->entries[entry_index].value[val_len] = '\0';
+
+                ++pf->count;
+                ++entry_index;
+            }
+
+            line_start = index + 1;
+            delim      = (u64)-1;
+        }
+    }
+
+    return (pf);
 }
-#endif

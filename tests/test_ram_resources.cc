@@ -11,7 +11,7 @@ extern "C"
 /*
   test if ram_create actually creates a ram object
  */
-local_internal void
+internal void
 test_ram_create()
 {
     mem_arena *arena = arena_create(KiB(1));
@@ -23,7 +23,7 @@ test_ram_create()
 /*
   test if ram read actually reads data in the ram object
  */
-local_internal void
+internal void
 test_ram_read_returns_ok()
 {
     mem_arena *arena = arena_create(KiB(1));
@@ -35,7 +35,7 @@ test_ram_read_returns_ok()
 /*
   test if the values values are not zero
  */
-local_internal void
+internal void
 test_ram_read_non_empty_values()
 {
     mem_arena *arena = arena_create(KiB(1));

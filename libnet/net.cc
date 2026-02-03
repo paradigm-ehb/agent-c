@@ -14,8 +14,8 @@
  * use /proc/net/tcp and /proc/net/udp
  * */
 
-local_internal i8
-port_read_tcp4(device *device)
+internal i8
+port_read_tcp4(sys_device *device)
 {
     char endofline[] = "\n";
     if (!device)
@@ -35,7 +35,7 @@ port_read_tcp4(device *device)
     /*
      * TODO(nasr): think about the size we are allocating here
      * */
-    buffer = PUSH_ARRAY(temp_arena, char, BUFF_SMALL);
+    buffer = PushArray(temp_arena, char, BUFF_SMALL);
     do
     {
         read(file, buffer, 1);
@@ -46,8 +46,8 @@ port_read_tcp4(device *device)
     return ERR_OK;
 }
 
-local_internal i8
-port_read_tcp6(device *device)
+internal i8
+port_read_tcp6(sys_device *device)
 {
     if (!device)
     {
@@ -64,7 +64,7 @@ port_read_tcp6(device *device)
     }
 
     /*TODO(nasr): think about the buffer size properly*/
-    buffer = PUSH_ARRAY(temp_arena, char, BUFF_SMALL);
+    buffer = PushArray(temp_arena, char, BUFF_SMALL);
     do
     {
         read(file, buffer, 1);

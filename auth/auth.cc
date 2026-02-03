@@ -10,7 +10,7 @@
 /* high level open ssl certificates*/
 #include <openssl/evp.h>
 
-local_internal EVP_PKEY *
+internal EVP_PKEY *
 generate_key(void)
 {
     /* Key container */
@@ -44,7 +44,7 @@ generate_key(void)
     return pkey;
 }
 
-local_internal X509 *
+internal X509 *
 generate_cert(EVP_PKEY *pkey)
 {
     X509 *x509 = X509_new();
@@ -87,7 +87,7 @@ generate_cert(EVP_PKEY *pkey)
     return x509;
 }
 
-local_internal void
+internal void
 generate(void)
 {
     EVP_PKEY *pkey = generate_key();

@@ -13,7 +13,7 @@ extern "C"
  * test if the retrieved disks aren't 0
  *
  * */
-local_internal void
+internal void
 test_partition_count()
 {
     mem_arena *arena = arena_create(MiB(8));
@@ -28,7 +28,7 @@ test_partition_count()
  * Test case:
  * test if the partitions get allocated
  * */
-local_internal void
+internal void
 test_partition_creation()
 {
     mem_arena *arena = arena_create(MiB(8));
@@ -43,7 +43,7 @@ test_partition_creation()
  * Test case:
  * test if the partition capacity is bigger then the partition count
  * */
-local_internal void
+internal void
 test_partition_capacity_bigger_then_count()
 {
     mem_arena *arena = arena_create(MiB(8));
@@ -58,7 +58,7 @@ test_partition_capacity_bigger_then_count()
  * Test case:
  * test if the partition capacity is bigger then the partition count
  * */
-local_internal void
+internal void
 test_individual_partition_non_null()
 {
     mem_arena *arena = arena_create(MiB(8));

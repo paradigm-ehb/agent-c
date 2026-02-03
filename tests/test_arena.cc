@@ -10,7 +10,7 @@ extern "C"
 /*
  * Test: arena_create returns a valid pointer
  */
-local_internal void
+internal void
 test_arena_create()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -21,7 +21,7 @@ test_arena_create()
 /*
  * Test: arena capacity is set correctly
  */
-local_internal void
+internal void
 test_arena_capacity()
 {
     u64        capacity = MiB(2);
@@ -33,7 +33,7 @@ test_arena_capacity()
 /*
  * Test: arena initial position is set to sizeof(mem_arena)
  */
-local_internal void
+internal void
 test_arena_initial_pos()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -45,7 +45,7 @@ test_arena_initial_pos()
 /*
  * Test: arena_alloc returns non-NULL pointer
  */
-local_internal void
+internal void
 test_arena_alloc_returns_valid()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -58,7 +58,7 @@ test_arena_alloc_returns_valid()
 /*
  * Test: arena_alloc zeros memory by default
  */
-local_internal void
+internal void
 test_arena_alloc_zeros_memory()
 {
     mem_arena *arena    = arena_create(MiB(1));
@@ -79,7 +79,7 @@ test_arena_alloc_zeros_memory()
 /*
  * Test: arena_alloc with non_zero flag doesn't zero memory
  */
-local_internal void
+internal void
 test_arena_alloc_non_zero()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -95,7 +95,7 @@ test_arena_alloc_non_zero()
 /*
  * Test: arena_alloc updates position correctly
  */
-local_internal void
+internal void
 test_arena_alloc_updates_pos()
 {
     mem_arena *arena       = arena_create(MiB(1));
@@ -108,7 +108,7 @@ test_arena_alloc_updates_pos()
 /*
  * Test: arena_alloc aligns allocations
  */
-local_internal void
+internal void
 test_arena_alloc_alignment()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -122,7 +122,7 @@ test_arena_alloc_alignment()
 /*
  * Test: multiple alloces don't overlap
  */
-local_internal void
+internal void
 test_arena_alloc_no_overlap()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -138,7 +138,7 @@ test_arena_alloc_no_overlap()
 /*
  * Test: alloc_STRUCT macro works
  */
-local_internal void
+internal void
 test_alloc_struct_macro()
 {
     typedef struct test_struct
@@ -160,7 +160,7 @@ test_alloc_struct_macro()
 /*
  * Test: alloc_ARRAY macro works
  */
-local_internal void
+internal void
 test_alloc_array_macro()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -176,7 +176,7 @@ test_alloc_array_macro()
 /*
  * Test: arena_pop reduces position
  */
-local_internal void
+internal void
 test_arena_pop()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -190,7 +190,7 @@ test_arena_pop()
 /*
  * Test: arena_pop doesn't go below initial position
  */
-local_internal void
+internal void
 test_arena_pop_safety()
 {
     mem_arena *arena       = arena_create(MiB(1));
@@ -203,7 +203,7 @@ test_arena_pop_safety()
 /*
  * Test: arena_pop_to sets position correctly
  */
-local_internal void
+internal void
 test_arena_pop_to()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -218,7 +218,7 @@ test_arena_pop_to()
 /*
  * Test: arena_clear resets arena
  */
-local_internal void
+internal void
 test_arena_clear()
 {
     mem_arena *arena       = arena_create(MiB(1));
@@ -233,7 +233,7 @@ test_arena_clear()
 /*
  * Test: temp_arena_begin captures state
  */
-local_internal void
+internal void
 test_temp_arena_begin()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -247,7 +247,7 @@ test_temp_arena_begin()
 /*
  * Test: temp_arena_end restores state
  */
-local_internal void
+internal void
 test_temp_arena_end()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -265,7 +265,7 @@ test_temp_arena_end()
 /*
  * Test: temp_arena nesting works
  */
-local_internal void
+internal void
 test_temp_arena_nesting()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -287,7 +287,7 @@ test_temp_arena_nesting()
 /*
  * Test: arena can be reused after clear
  */
-local_internal void
+internal void
 test_arena_reuse()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -303,7 +303,7 @@ test_arena_reuse()
 /*
  * Test: large allocation works
  */
-local_internal void
+internal void
 test_arena_large_allocation()
 {
     mem_arena *arena = arena_create(MiB(10));

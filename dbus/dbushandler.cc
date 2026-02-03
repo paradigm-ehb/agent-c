@@ -3,7 +3,7 @@
 
 #include "base/base.h"
 
-local_internal sd_bus *
+internal sd_bus *
 create_session_bus_connection()
 {
     sd_bus *bus;
@@ -11,7 +11,7 @@ create_session_bus_connection()
     return bus;
 }
 
-local_internal sd_bus *
+internal sd_bus *
 create_system_bus_connection()
 {
     sd_bus *bus;
@@ -19,7 +19,7 @@ create_system_bus_connection()
     return bus;
 }
 
-local_internal sd_bus_slot *
+internal sd_bus_slot *
 create_systemd_object(sd_bus *bus, const sd_bus_vtable *vtable)
 {
     sd_bus_slot *slot = NULL;
@@ -38,7 +38,7 @@ create_systemd_object(sd_bus *bus, const sd_bus_vtable *vtable)
     return slot;
 }
 
-local_internal sd_bus_slot *
+internal sd_bus_slot *
 create_logind_object(sd_bus *bus, const sd_bus_vtable *vtable)
 {
     sd_bus_slot *slot = NULL;

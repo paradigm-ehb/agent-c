@@ -39,7 +39,7 @@ struct DistroStack
     enum LinuxDistro linux_distro;
 };
 
-local_internal const struct DistroStack distro_map[] = {
+internal const struct DistroStack distro_map[] = {
 {"arch", DISTRO_ARCH_LINUX},
 {"manjaro", DISTRO_MANJARO},
 {"endeavouros", DISTRO_ENDEAVOUROS},
@@ -62,7 +62,7 @@ local_internal const struct DistroStack distro_map[] = {
 {"opensuse", DISTRO_OPENSUSE},
 };
 
-local_internal char *
+internal char *
 find_lxd_pkgm(mem_arena *arena);
 
 #endif

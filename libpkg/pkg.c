@@ -8,22 +8,24 @@
 
 #include <string.h>
 
-local_internal char *
+internal char *
 find_lxd_pkgm(mem_arena *arena)
 {
-    Device *device = device_create(arena);
-    device_read(device);
     enum LinuxDistro lxd;
+    device          *dev = device_create(arena);
+    device_read(dev);
 
-    i32   len             = sizeof(device->os_version);
-    char *distro_unparsed = (char *)PUSH_ARRAY(arena, char, len);
+    i32   len             = sizeof(dev->os_version);
+    char *distro_unparsed = PushArray(arena, char, len);
 
-    memcpy(distro_unparsed, device->os_version, len);
+    memcpy(distro_unparsed, dev->os_version, len);
 
-    i32   word_idx = 0;
-    char *buffer   = (char *)arena_push(arena, len, 1);
+    i32 word_idx = 0;
+    /*
+     * */
+    char *buffer = PushArray(arena, char, len);
 
-    while (distro_unparsed[word_idx] != '\0')
+    for (; distro_unparsed[word_idx] != '\0';)
     {
         /* TODO:
      *

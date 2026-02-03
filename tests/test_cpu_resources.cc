@@ -11,7 +11,7 @@ extern "C"
 /*
  * Test: cpu_create returns a valid pointer
  */
-local_internal void
+internal void
 test_cpu_create()
 {
     mem_arena *arena = arena_create(MiB(1));
@@ -23,7 +23,7 @@ test_cpu_create()
 /*
  * Test: cpu_read returns ERR_OK
  */
-local_internal void
+internal void
 test_cpu_read_returns_ok()
 {
     mem_arena *arena = arena_create(MiB(4));
@@ -35,7 +35,7 @@ test_cpu_read_returns_ok()
 /*
  * Test: CPU model string is populated
  */
-local_internal void
+internal void
 test_cpu_model_present()
 {
     mem_arena *arena = arena_create(MiB(4));
@@ -49,7 +49,7 @@ test_cpu_model_present()
 /*
  * Test: CPU core count is > 0
  */
-local_internal void
+internal void
 test_cpu_cores_positive()
 {
     mem_arena *arena = arena_create(MiB(4));
@@ -63,7 +63,7 @@ test_cpu_cores_positive()
 /*
  * Test: CPU frequency string is populated
  */
-local_internal void
+internal void
 test_cpu_frequency_present()
 {
     mem_arena *arena = arena_create(MiB(4));
@@ -77,7 +77,7 @@ test_cpu_frequency_present()
 /*
  * Test: cpu_read is idempotent for static fields
  */
-local_internal void
+internal void
 test_cpu_read_idempotent()
 {
     mem_arena *arena = arena_create(MiB(4));
@@ -96,7 +96,7 @@ test_cpu_read_idempotent()
 /*
  * Test: cpu_read(NULL) returns ERR_INVALID (debug only)
  */
-local_internal void
+internal void
 test_cpu_read_null()
 {
 #ifdef DEBUG
@@ -107,7 +107,7 @@ test_cpu_read_null()
 /*
  * Test: CPU vendor present on x86
  */
-local_internal void
+internal void
 test_cpu_vendor_present()
 {
 #if defined(__i386__) || defined(__x86_64__)

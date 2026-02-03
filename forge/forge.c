@@ -10,7 +10,7 @@
 #define FLAGS
 #endif
 
-local_internal void
+internal void
 compile(char *path)
 {
     /*
@@ -19,7 +19,7 @@ compile(char *path)
    */
 }
 
-local_internal int
+internal int
 build(int argc, char **argv)
 {
     if (argc > 0)

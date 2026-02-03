@@ -21,10 +21,10 @@ extern "C"
 
 /*------grpc connection-------*/
 #include "auth/auth.cc"
+#include "grpc/server/server.cc"
+#include "grpc/handlers/resource_handler.cc"
 #include "grpc/generated/resources/v3/deviceresources.pb.cc"
 #include "grpc/generated/resources/v3/deviceresources.grpc.pb.cc"
-#include "grpc/handlers/resource_handler.cc"
-#include "grpc/server/server.cc"
 /*----------------------------*/
 
 /*------commented out---------*/

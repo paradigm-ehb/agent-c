@@ -1,4 +1,5 @@
 #include "libres/resources.h"
+#include "base/base_arena.h"
 #include "base/base_include.h"
 
 /*
@@ -11,8 +12,8 @@
  * silently.
  */
 
-local_internal void
-disk_push_partition(disk *d, partition p, mem_arena *arena)
+internal void
+disk_push_partition(sys_disk *d, sys_partition p, mem_arena *arena)
 {
     if (d->part_count == d->part_capacity)
     {
@@ -29,13 +30,13 @@ disk_push_partition(disk *d, partition p, mem_arena *arena)
          *
          * We should think about popping the previous one that has been allocated
          * */
-        partition *np = PUSH_ARRAY(arena, partition, new_cap);
+        sys_partition *np = PushArray(arena, sys_partition, new_cap);
         if (!np)
             return;
 
         if (d->partitions && d->part_count > 0)
         {
-            memcpy(np, d->partitions, d->part_count * sizeof(partition));
+            memcpy(np, d->partitions, d->part_count * sizeof(sys_partition));
         }
 
         d->partitions    = np;
@@ -50,10 +51,10 @@ disk_push_partition(disk *d, partition p, mem_arena *arena)
  *
  * Return: Pointer to newly allocated Cpu, or NULL on allocation failure
  */
-local_internal cpu *
+internal sys_cpu *
 cpu_create(mem_arena *m)
 {
-    return (cpu *)arena_alloc(m, sizeof(cpu));
+    return (sys_cpu *)arena_alloc(m, sizeof(sys_cpu));
 }
 
 /*
@@ -75,7 +76,7 @@ cpu_create(mem_arena *m)
  *
  * */
 int
-cpu_read_enabled_core_cpu_frequency(cpu *out, int enabled_cpu_count)
+cpu_read_enabled_core_cpu_frequency(sys_cpu *out, int enabled_cpu_count)
 {
     if (!out)
     {
@@ -111,7 +112,7 @@ cpu_read_enabled_core_cpu_frequency(cpu *out, int enabled_cpu_count)
 }
 
 int
-cpu_read_cpu_model_name_arm64(cpu *out)
+cpu_read_cpu_model_name_arm64(sys_cpu *out)
 {
     FILE *of = fopen("/proc/device-tree/model", "rb");
     if (!of)
@@ -152,7 +153,7 @@ cpu_read_cpu_model_name_arm64(cpu *out)
 }
 
 int
-cpu_get_cores_enabled_arm(cpu *out)
+cpu_get_cores_enabled_arm(sys_cpu *out)
 {
     assert(out);
 
@@ -196,7 +197,7 @@ cpu_get_cores_enabled_arm(cpu *out)
  * we only read one file or something and that overrites our values
  * */
 int
-cpu_read_arm64(cpu *out)
+cpu_read_arm64(sys_cpu *out)
 {
     if (!out)
     {
@@ -220,7 +221,7 @@ cpu_read_arm64(cpu *out)
  */
 
 int
-cpu_read_amd64(cpu *out)
+cpu_read_amd64(sys_cpu *out)
 {
     if (!out)
     {
@@ -271,7 +272,7 @@ cpu_read_amd64(cpu *out)
 }
 
 int
-cpu_read(cpu *out)
+cpu_read(sys_cpu *out)
 {
     if (!out)
     {
@@ -306,7 +307,7 @@ cpu_read(cpu *out)
 }
 
 int
-cpu_read_usage(cpu *out)
+cpu_read_usage(sys_cpu *out)
 {
     if (!out)
     {
@@ -357,10 +358,10 @@ cpu_read_usage(cpu *out)
  *
  * Return: Pointer to newly allocated Ram, or NULL on allocation failure
  */
-memory *
+sys_memory *
 ram_create(mem_arena *m)
 {
-    return (memory *)arena_alloc(m, sizeof(memory));
+    return (sys_memory *)arena_alloc(m, sizeof(sys_memory));
 }
 
 /*
@@ -373,7 +374,7 @@ ram_create(mem_arena *m)
  *         ERR_IO if /proc/meminfo cannot be opened
  */
 int
-ram_read(memory *out)
+sys_ram_read(sys_memory *out)
 {
     if (!out)
     {
@@ -415,7 +416,7 @@ ram_read(memory *out)
         if (!strncmp(buf, "MemTotal", 8))
         {
             total_len    = strcspn(val, "k\n");
-            total_buffer = PUSH_ARRAY(temp_arena, char, total_len);
+            total_buffer = PushArray(temp_arena, char, total_len);
 
             memcpy(total_buffer, val, total_len);
         }
@@ -423,7 +424,7 @@ ram_read(memory *out)
         if (!strncmp(buf, "MemFree", 7))
         {
             free_len    = strcspn(val, "k\n");
-            free_buffer = PUSH_ARRAY(temp_arena, char, free_len);
+            free_buffer = PushArray(temp_arena, char, free_len);
 
             memcpy(free_buffer, val, free_len);
         }
@@ -442,10 +443,10 @@ ram_read(memory *out)
  *
  * Return: Pointer to newly allocated Disk, or NULL on allocation failure
  */
-disk *
+sys_disk *
 disk_create(mem_arena *m)
 {
-    return (disk *)arena_alloc(m, sizeof(disk));
+    return (sys_disk *)arena_alloc(m, sizeof(sys_disk));
 }
 
 /*
@@ -460,8 +461,8 @@ disk_create(mem_arena *m)
  *         ERR_IO if /proc/partitions cannot be opened
  */
 
-local_internal int
-disk_read(disk *out, mem_arena *arena)
+internal int
+disk_read(sys_disk *out, mem_arena *arena)
 {
     if (!out)
     {
@@ -480,7 +481,7 @@ disk_read(disk *out, mem_arena *arena)
 
     while (fgets(buf, sizeof(buf), f))
     {
-        partition p = {
+        sys_partition p = {
         .blocks = 0,
         .major  = 0,
         .minor  = 0,
@@ -515,14 +516,14 @@ disk_read(disk *out, mem_arena *arena)
     return ERR_OK;
 }
 
-local_internal fs *
+internal sys_fs *
 fs_create(mem_arena *arena)
 {
-    return (fs *)arena_alloc(arena, sizeof(fs));
+    return PushStruct(arena, sys_fs);
 }
 
-local_internal int
-fs_read(char *path, fs *fs)
+internal int
+fs_read(char *path, sys_fs *fs)
 {
     struct statfs s;
     if (statfs(path, &s) != 0)
@@ -550,10 +551,10 @@ fs_read(char *path, fs *fs)
  *
  * Return: Pointer to newly allocated Device, or NULL on allocation failure
  */
-local_internal device *
+internal sys_device *
 device_create(mem_arena *m)
 {
-    return (device *)arena_alloc(m, sizeof(device));
+    return (sys_device *)arena_alloc(m, sizeof(sys_device));
 }
 
 /*
@@ -565,8 +566,8 @@ device_create(mem_arena *m)
  * as needed.
  */
 
-local_internal int
-process_list_collect(proc_list *list, mem_arena *arena)
+internal int
+process_list_collect(sys_proc_list *list, mem_arena *arena)
 {
     DIR *d = opendir("/proc");
     if (!d)
@@ -581,7 +582,7 @@ process_list_collect(proc_list *list, mem_arena *arena)
     {
         list->capacity = 8;
         list->count    = 0;
-        list->items    = PUSH_ARRAY(arena, proc, list->capacity);
+        list->items    = PushArray(arena, sys_proc, list->capacity);
         if (!list->items)
         {
             closedir(d);
@@ -597,17 +598,17 @@ process_list_collect(proc_list *list, mem_arena *arena)
 
         if (list->count == list->capacity)
         {
-            size_t new_cap = list->capacity * 2;
-            proc  *np      = PUSH_ARRAY(arena, proc, new_cap);
+            size_t    new_cap = list->capacity * 2;
+            sys_proc *np      = PushArray(arena, sys_proc, new_cap);
             if (!np)
                 break;
 
-            memcpy(np, list->items, sizeof(proc) * list->capacity);
+            memcpy(np, list->items, sizeof(sys_proc) * list->capacity);
             list->items    = np;
             list->capacity = new_cap;
         }
 
-        proc *p = &list->items[list->count++];
+        sys_proc *p = &list->items[list->count++];
 
         p->pid         = parse_u64(e->d_name, sizeof(e->d_name));
         p->state       = proc_undefined;
@@ -633,8 +634,8 @@ struct Proces {
 
 */
 
-local_internal int
-process_read(i32 pid, proc *out)
+internal int
+process_read(i32 pid, sys_proc *out)
 {
     char path[PATH_MAX_LEN];
     snprintf(path, sizeof(path), "/proc/%d/status", pid);
@@ -752,8 +753,8 @@ process_read(i32 pid, proc *out)
     return ERR_OK;
 }
 
-local_internal int
-device_up_time(device *out)
+internal int
+device_up_time(sys_device *out)
 {
     if (!out)
     {
@@ -797,7 +798,7 @@ device_up_time(device *out)
  *         ERR_IO if required files cannot be opened
  */
 int
-device_read(device *out)
+device_read(sys_device *out)
 {
     if (!out)
     {
@@ -856,7 +857,7 @@ device_read(device *out)
  *         ERR_PERM if permission denied,
  *         ERR_IO for other errors
  */
-local_internal int
+internal int
 process_kill(pid_t pid, int signal)
 {
     if (pid <= 0)
